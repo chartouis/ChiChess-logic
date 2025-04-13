@@ -1,0 +1,7 @@
+# Backend IDE and build files
+.idea/
+.gradle/
+build/
+src/main/resources/.env
+
+.env
