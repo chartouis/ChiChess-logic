@@ -1,4 +1,4 @@
-package com.chitas.jobquest.config;
+package com.chitas.chesslogic.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,8 +15,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.chitas.jobquest.service.CUserDetailsService;
-import com.chitas.jobquest.service.JWTService;
+import com.chitas.chesslogic.service.CUserDetailsService;
+import com.chitas.chesslogic.service.JWTService;
 
 import java.io.IOException;
 

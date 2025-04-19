@@ -1,4 +1,4 @@
-package com.chitas.jobquest.model.DTO;
+package com.chitas.chesslogic.model.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

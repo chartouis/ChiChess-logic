@@ -1,13 +1,14 @@
-package com.chitas.jobquest.service;
+package com.chitas.chesslogic.service;
 
-import com.chitas.jobquest.model.User;
-import com.chitas.jobquest.model.UserPrincipal;
-import com.chitas.jobquest.repo.UsersRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import com.chitas.chesslogic.model.User;
+import com.chitas.chesslogic.model.UserPrincipal;
+import com.chitas.chesslogic.repo.UsersRepo;
 
 @Service
 public class CUserDetailsService implements UserDetailsService {

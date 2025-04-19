@@ -1,4 +1,4 @@
-package com.chitas.jobquest.controller;
+package com.chitas.chesslogic.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

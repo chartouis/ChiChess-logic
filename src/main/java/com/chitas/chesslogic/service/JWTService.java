@@ -1,4 +1,4 @@
-package com.chitas.jobquest.service;
+package com.chitas.chesslogic.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

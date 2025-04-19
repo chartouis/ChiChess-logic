@@ -1,4 +1,4 @@
-package com.chitas.jobquest.config;
+package com.chitas.chesslogic.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

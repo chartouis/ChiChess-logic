@@ -1,4 +1,4 @@
-package com.chitas.jobquest.model;
+package com.chitas.chesslogic.model;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
