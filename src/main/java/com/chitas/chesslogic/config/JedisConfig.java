@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
+import redis.clients.jedis.Jedis;
+
 @Configuration
 public class JedisConfig {
 
@@ -13,5 +15,10 @@ public class JedisConfig {
 
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("server", 6379);
         return new JedisConnectionFactory(config);
+    }
+
+    @Bean
+    public Jedis jedis() {
+        return new Jedis("localhost", 6379);
     }
 }
