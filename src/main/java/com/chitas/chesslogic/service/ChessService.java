@@ -67,14 +67,13 @@ public class ChessService implements RoomManager {
 
     @Override
     public RoomState joinRoom(String roomId, String visitorId) {
-        // has to fetch a room from redis and then save it back there but with a
-        // visitorID
+        // TODO has to fetch a room from redis and then save it back there but with a visitorID
         throw new UnsupportedOperationException("Unimplemented method 'ashdua'");
     }
 
     @Override
     public void deleteRoom(String roomId) {
-        //has to delete a room with the given roomId from redis
+        //TODO has to delete a room with the given roomId from redis
         throw new UnsupportedOperationException("Unimplemented method 'ashdua'");    }
 
 }
