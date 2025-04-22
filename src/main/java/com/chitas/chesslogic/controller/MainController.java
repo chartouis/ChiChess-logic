@@ -18,10 +18,10 @@ public class MainController {
 
     }
 
-    @PostMapping("/move")
-    public String doMove(@RequestBody String entity) {
-        return chess.move(entity);
-    }
+    // @PostMapping("/move")
+    // public String doMove(@RequestBody String entity) {
+    //     return chess.move(entity);
+    // }
     
 
 }
