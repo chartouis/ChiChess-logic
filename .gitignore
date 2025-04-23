@@ -3,5 +3,6 @@
 .gradle/
 build/
 src/main/resources/.env
+src/main/resources/application-test.properties
 
 .env
