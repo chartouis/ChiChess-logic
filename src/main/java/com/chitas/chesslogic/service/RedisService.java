@@ -18,10 +18,12 @@ public class RedisService {
         try (Jedis jedis = jedisPool.getResource()) {
             String key = "room:" + roomState.getId();
             jedis.hset(key, "isActive", String.valueOf(roomState.isActive()));
-            jedis.hset(key, "creatorId", roomState.getCreatorId() != null ? roomState.getCreatorId() : "");
-            jedis.hset(key, "visitorId", roomState.getVisitorId() != null ? roomState.getVisitorId() : "");
+            jedis.hset(key, "creator", roomState.getCreator() != null ? roomState.getCreator() : "");
+            jedis.hset(key, "white", roomState.getWhite() != null ? roomState.getWhite() : "");
+            jedis.hset(key, "black", roomState.getBlack() != null ? roomState.getWhite() : "");
             jedis.hset(key, "position", roomState.getPosition() != null ? roomState.getPosition() : "");
-            jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : "");
+            jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : ""); ///?????
+            
         }
     }
 
@@ -32,16 +34,18 @@ public class RedisService {
                 return null;
             }
             String isActive = jedis.hget(key, "isActive");
-            String creatorId = jedis.hget(key, "creatorId");
-            String visitorId = jedis.hget(key, "visitorId");
+            String creator = jedis.hget(key, "creator");
+            String white = jedis.hget(key, "white");
+            String black = jedis.hget(key, "black");
             String position = jedis.hget(key, "position");
             String history = jedis.hget(key, "history");
 
             return new RoomState.Builder()
                     .id(roomId)
                     .isActive(Boolean.parseBoolean(isActive))
-                    .creatorId(creatorId)
-                    .visitorId(visitorId)
+                    .creator(creator)
+                    .black(black)
+                    .white(white)
                     .position(position)
                     .history(history)
                     .build();
