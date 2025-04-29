@@ -1,5 +1,6 @@
 package com.chitas.chesslogic.service;
 
+import com.chitas.chesslogic.model.GameStatus;
 import com.chitas.chesslogic.model.RoomState;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -20,10 +21,12 @@ public class RedisService {
             jedis.hset(key, "isActive", String.valueOf(roomState.isActive()));
             jedis.hset(key, "creator", roomState.getCreator() != null ? roomState.getCreator() : "");
             jedis.hset(key, "white", roomState.getWhite() != null ? roomState.getWhite() : "");
-            jedis.hset(key, "black", roomState.getBlack() != null ? roomState.getWhite() : "");
+            jedis.hset(key, "black", roomState.getBlack() != null ? roomState.getBlack() : "");
             jedis.hset(key, "position", roomState.getPosition() != null ? roomState.getPosition() : "");
-            jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : ""); ///?????
-            
+            jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : "");
+            jedis.hset(key, "status", roomState.getStatus().name() != null ? roomState.getStatus().name() : "");
+            jedis.hset(key, "winner", roomState.getWinner() != null ? roomState.getWinner() : "");
+
         }
     }
 
@@ -39,6 +42,8 @@ public class RedisService {
             String black = jedis.hget(key, "black");
             String position = jedis.hget(key, "position");
             String history = jedis.hget(key, "history");
+            String status = jedis.hget(key, "status");
+            String winner = jedis.hget(key, "winner");
 
             return new RoomState.Builder()
                     .id(roomId)
@@ -48,6 +53,8 @@ public class RedisService {
                     .white(white)
                     .position(position)
                     .history(history)
+                    .status(GameStatus.valueOf(status))
+                    .winner(winner)
                     .build();
         }
     }
