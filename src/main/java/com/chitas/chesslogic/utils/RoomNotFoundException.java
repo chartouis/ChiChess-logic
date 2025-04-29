@@ -1,7 +1,9 @@
 package com.chitas.chesslogic.utils;
 
+import com.chitas.chesslogic.model.RoomState;
+
 public class RoomNotFoundException extends RuntimeException {
-    public RoomNotFoundException(String roomId) {
-        super("Room not found: " + roomId);
+    public RoomNotFoundException(RoomState room) {
+        super("Room not found: " + room);
     }
 }
