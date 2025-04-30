@@ -12,7 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test") // Use test Redis config
+@ActiveProfiles("test")
 class ChessServiceTest {
 
     @Autowired
@@ -23,22 +23,19 @@ class ChessServiceTest {
 
     @BeforeEach
     void setUp() {
-        redisService.deleteAllRooms(); // Clear Redis before each test
+        redisService.deleteAllRooms();
     }
 
     @Test
     void testCreateUpdateDeleteRoom() {
-        // Create
         String creatorId = "user1";
         String white = "user1";
         RoomState createdRoom = chessService.createRoom(creatorId, white, "");
         assertNotNull(createdRoom.getId());
         assertEquals(creatorId, createdRoom.getCreator());
-        assertNotNull(createdRoom.getPosition()); // Board FEN
+        assertNotNull(createdRoom.getPosition());
         assertEquals(redisService.getRoomState(createdRoom.getId()).getId(), createdRoom.getId());
 
-        // Update (join)
-        
         String black = "user2";
         RoomState updatedRoom = chessService.joinRoom(createdRoom.getId(), black);
         assertEquals(white, updatedRoom.getWhite());
@@ -46,12 +43,10 @@ class ChessServiceTest {
         assertEquals(black, updatedRoom.getBlack());
         assertEquals(black, redisService.getRoomState(createdRoom.getId()).getBlack());
 
-        // Delete
         chessService.deleteRoom(createdRoom.getId());
         assertNull(redisService.getRoomState(createdRoom.getId()));
     }
 
-    // Helper: Execute a single move with authentication
     private boolean executeMove(String roomId, String from, String to, String promotion, String player) {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(player, null));
@@ -60,7 +55,6 @@ class ChessServiceTest {
         return result;
     }
 
-    // Helper: Simulate a sequence of moves
     private void simulateMoves(String roomId, String[] moves, String whitePlayer, String blackPlayer) {
         for (int i = 0; i < moves.length; i += 3) {
             String player = i % 2 == 0 ? whitePlayer : blackPlayer;
@@ -71,7 +65,6 @@ class ChessServiceTest {
 
     @Test
     void testGameUntilWhiteCheckmatesBlack() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
@@ -79,188 +72,182 @@ class ChessServiceTest {
         assertEquals(whitePlayer, room.getWhite());
         assertEquals(blackPlayer, room.getBlack());
 
-        // Scholar's Mate: 1. e4 e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7#
         String[] moves = {
-                "E2", "E4", "", // e4
-                "E7", "E5", "", // e5
-                "D1", "H5", "", // Qh5
-                "B8", "C6", "", // Nc6
-                "F1", "C4", "", // Bc4
-                "G8", "F6", "", // Nf6
-                "H5", "F7", ""  // Qxf7#
+                "E2", "E4", "",
+                "E7", "E5", "",
+                "D1", "H5", "",
+                "B8", "C6", "",
+                "F1", "C4", "",
+                "G8", "F6", "",
+                "H5", "F7", ""
         };
 
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify checkmate
         RoomState finalState = chessService.getRoomState(room.getId());
         assertEquals(GameStatus.CHECKMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E8", "E7", "", blackPlayer), "Black can't move after checkmate");
+        assertFalse(executeMove(room.getId(), "E8", "E7", "", blackPlayer));
     }
 
     @Test
     void testGameUntilBlackCheckmatesWhite() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
-        // Fool's Mate: 1. f3 e5 2. g4 Qh4#
         String[] moves = {
-                "F2", "F3", "", // f3
-                "E7", "E5", "", // e5
-                "G2", "G4", "", // g4
-                "D8", "H4", ""  // Qh4#
+                "F2", "F3", "",
+                "E7", "E5", "",
+                "G2", "G4", "",
+                "D8", "H4", ""
         };
 
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify checkmate
         RoomState finalState = chessService.getRoomState(room.getId());
         assertEquals(GameStatus.CHECKMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E1", "E2", "", whitePlayer), "White can't move after checkmate");
+        assertFalse(executeMove(room.getId(), "E1", "E2", "", whitePlayer));
     }
 
     @Test
     void testThreefoldRepetitionDraw() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
-        // Repeated moves: 1. Nf3 Nf6 2. Ng1 Ng8 3. Nf3 Nf6 4. Ng1 Ng8
         String[] moves = {
-                "G1", "F3", "", // Nf3
-                "G8", "F6", "", // Nf6
-                "F3", "G1", "", // Ng1
-                "F6", "G8", "", // Ng8
-                "G1", "F3", "", // Nf3
-                "G8", "F6", "", // Nf6
-                "F3", "G1", "", // Ng1
-                "F6", "G8", ""  // Ng8
+                "G1", "F3", "",
+                "G8", "F6", "",
+                "F3", "G1", "",
+                "F6", "G8", "",
+                "G1", "F3", "",
+                "G8", "F6", "",
+                "F3", "G1", "",
+                "F6", "G8", ""
         };
 
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify draw
         RoomState finalState = chessService.getRoomState(room.getId());
         assertEquals(GameStatus.DRAW, finalState.getStatus());
     }
 
     @Test
     void testStalemate() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
-        // Simplified stalemate: White traps Black king with no legal moves
         String[] moves = {
-            "E2", "E3", "",   // e3
-            "A7", "A5", "",   // a5
-            "D1", "H5", "",   // Qh5
-            "A8", "A6", "",   // Ra6
-            "H5", "A5", "",   // Qxa5
-            "H7", "H5", "",   // h5
-            "H2", "H4", "",   // h4
-            "H8", "H6", "",   // Rah6
-            "A5", "C7", "",   // Qxc7
-            "F7", "F6", "",   // f6
-            "C7", "D7", "",   // Qxd7+
-            "E8", "F7", "",   // Kf7
-            "D7", "B7", "",   // Qxb7
-            "D8", "D3", "",   // Qd3
-            "B7", "B8", "",   // Qxb8
-            "D3", "H7", "",   // Qh7
-            "B8", "C8", "",   // Qxc8
-            "C8", "E6", ""    // Qe6 — stalemate
+                "D2", "D4", "",
+                "D7", "D6", "",
+                "D1", "D2", "",
+                "E7", "E5", "",
+                "A2", "A4", "",
+                "E5", "E4", "",
+                "D2", "F4", "",
+                "F7", "F5", "",
+                "H2", "H3", "",
+                "F8", "E7", "",
+                "F4", "H2", "",
+                "E7", "E6", "",
+                "A1", "A3", "",
+                "C7", "C5", "",
+                "A3", "G3", "",
+                "D8", "A5", "",
+                "B1", "D2", "",
+                "C8", "H4", "",
+                "F2", "F3", "",
+                "E6", "B3", "",
+                "D4", "D5", "",
+                "E4", "E3", "",
+                "C2", "C4", "",
+                "F5", "F4", ""
         };
-        
 
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify stalemate
         RoomState finalState = chessService.getRoomState(room.getId());
         assertEquals(GameStatus.STALEMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E7", "D7", "", blackPlayer), "Black has no legal moves");
+        assertFalse(executeMove(room.getId(), "E7", "D7", "", blackPlayer));
     }
 
     @Test
     void testPawnPromotionToQueen() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
-        // Move pawn to 8th rank: 1. e4 d5 2. exd5 Qxd5 3. d4 Qe4+ 4. Be3 Qe6 5. d5 Qf5 6. d6 Qe4 7. d7+ Qxd7 8. d8=Q
         String[] moves = {
-            "A2", "A4", "",   // a4
-            "A4", "A5", "",   // a5
-            "A5", "A6", "",   // a6
-            "A6", "A7", "",   // a7
-            "A7", "A8", "Q"   // a8=Q
+                "E2", "E4", "",
+                "E7", "E5", "",
+                "D2", "D4", "",
+                "D7", "D5", "",
+                "E4", "D5", "",
+                "E5", "D4", "",
+                "D1", "D4", "",
+                "D8", "D5", "",
+                "C2", "C4", "",
+                "C7", "C5", "",
+                "C4", "D5", "",
+                "C5", "D4", "",
+                "D5", "D6", "",
+                "D4", "D3", "",
+                "D6", "D7", "",
+                "E8", "E7", "",
+                "D7", "D8", "Q",
+                "E7", "D8", "",
+                "F2", "F3", "",
+                "D3", "D2", "",
+                "E1", "E2", "",
+                "D2", "D1", "Q"
         };
-        
 
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify promotion
         RoomState finalState = chessService.getRoomState(room.getId());
-        assertTrue(finalState.getPosition().contains("Q"), "Pawn promoted to queen");
+        assertTrue(finalState.getPosition().contains("Q"));
     }
 
     @Test
     void testPawnPromotionToKnight() {
-        // Setup
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
-        // Same sequence, promote to knight
         String[] moves = {
-            "A2", "A4", "",   // a4
-            "A4", "A5", "",   // a5
-            "A5", "A6", "",   // a6
-            "A6", "A7", "",   // a7
-            "A7", "A8", "N"   // a8=N
+                "E2", "E4", "",
+                "E7", "E5", "",
+                "D2", "D4", "",
+                "D7", "D5", "",
+                "E4", "D5", "",
+                "E5", "D4", "",
+                "D1", "D4", "",
+                "D8", "D5", "",
+                "C2", "C4", "",
+                "C7", "C5", "",
+                "C4", "D5", "",
+                "C5", "D4", "",
+                "D5", "D6", "",
+                "D4", "D3", "",
+                "D6", "D7", "",
+                "E8", "E7", "",
+                "D7", "D8", "N",
+                "E7", "D8", "",
+                "F2", "F3", "",
+                "D3", "D2", "",
+                "E1", "E2", "",
+                "D2", "D1", "N"
         };
-        
+
         simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
 
-        // Verify promotion
         RoomState finalState = chessService.getRoomState(room.getId());
-        assertTrue(finalState.getPosition().contains("N"), "Pawn promoted to knight");
+        assertTrue(finalState.getPosition().contains("N"));
     }
-
-
-
-    // void testCheckmateDetection_blackWins() {
-    // }
-
-    // void testStalemateDetection_resultsInDraw() {
-    // }
-
-    // void testThreefoldRepetition_resultsInDraw() {
-    // }
-
-    // void testInsufficientMaterial_resultsInDraw() {
-    // }
-
-    // void testPawnPromotion_toQueen() {
-    // }
-
-    // void testCastlingKingSide_legalMove() {
-    // }
-
-    // void testIllegalMoveRejected_bishopBlocked() {
-    // }
-
-    // void testPlayerTimeRunsOut_opponentWins() {
-    // }
-
 }
