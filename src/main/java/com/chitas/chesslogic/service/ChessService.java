@@ -41,7 +41,7 @@ public class ChessService implements RoomManager, ChessGameService {
     public boolean doMove(String roomId, String from, String to, String promotion) {
         Move move;
         if (!promotion.equals("")) {
-            move = new Move(Square.fromValue(from), Square.fromValue(to), Piece.fromValue(promotion)); // possible
+            move = new Move(Square.fromValue(from), Square.fromValue(to), Piece.fromFenSymbol(promotion)); // possible
                                                                                                        // exception
                                                                                                        // abuse. because
                                                                                                        // im not
