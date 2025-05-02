@@ -249,5 +249,6 @@ class ChessServiceTest {
 
         RoomState finalState = chessService.getRoomState(room.getId());
         assertTrue(finalState.getPosition().contains("N"));
+        //this test doesnt actually do its purpose, cuz there are at least 2 white horses from the start. so it will always pass unless a problem while doing moves
     }
 }
