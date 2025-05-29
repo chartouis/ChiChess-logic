@@ -6,14 +6,15 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+
 @Service
 public class RedisService {
 
-    private final JedisPool jedisPool;
+    private final JedisPool jedisPool = new JedisPool("localhost", 6379);;
 
-    public RedisService(JedisPool jedisPool) {
-        this.jedisPool = jedisPool;
-    }
+    // public RedisService(JedisPool jedisPool) {
+    //     this.jedisPool = jedisPool;
+    // }
 
     public void saveRoomState(RoomState roomState) {
         try (Jedis jedis = jedisPool.getResource()) {

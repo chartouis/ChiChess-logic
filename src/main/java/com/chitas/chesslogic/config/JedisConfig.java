@@ -6,8 +6,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-
 @Configuration
 public class JedisConfig {
 
@@ -23,8 +21,8 @@ public class JedisConfig {
         return new Jedis("localhost", 6379);
     }
 
-    @Bean
-    public JedisPool jedisPool() {
-        return new JedisPool("localhost", 6379);
-    }
+    // @Bean
+    // public JedisPool jedisPool() {
+    //     return new JedisPool("localhost", 6379);
+    // }
 }
