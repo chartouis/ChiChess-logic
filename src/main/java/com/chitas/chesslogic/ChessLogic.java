@@ -10,6 +10,7 @@ public class ChessLogic {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ChessLogic.class, args);
+		
 	}
 
 }
