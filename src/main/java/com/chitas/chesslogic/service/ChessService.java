@@ -39,6 +39,8 @@ public class ChessService implements RoomManager, ChessGameService {
 
     @Override
     public boolean doMove(String roomId, String from, String to, String promotion) {
+        from = from.toUpperCase();
+        to = to.toUpperCase();
         Move move;
         if (!promotion.equals("")) {
             move = new Move(Square.fromValue(from), Square.fromValue(to), Piece.fromFenSymbol(promotion)); // possible
