@@ -2,6 +2,7 @@
 .idea/
 .gradle/
 build/
+logs/
 src/main/resources/.env
 src/main/resources/application-test.properties
 
