@@ -2,10 +2,15 @@ package com.chitas.chesslogic.service;
 
 import com.chitas.chesslogic.model.GameStatus;
 import com.chitas.chesslogic.model.RoomState;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
 
 @Service
 public class RedisService {
@@ -13,7 +18,7 @@ public class RedisService {
     private final JedisPool jedisPool = new JedisPool("localhost", 6379);;
 
     // public RedisService(JedisPool jedisPool) {
-    //     this.jedisPool = jedisPool;
+    // this.jedisPool = jedisPool;
     // }
 
     public void saveRoomState(RoomState roomState) {
@@ -59,6 +64,24 @@ public class RedisService {
                     .build();
         }
     }
+
+public List<RoomState> getAllExistingRooms() {
+    try (Jedis jedis = jedisPool.getResource()) {
+        Set<String> keys = jedis.keys("room:*"); // use SCAN instead if big
+
+        if (keys.isEmpty()) return Collections.emptyList();
+
+        List<RoomState> roomList = new ArrayList<>();
+
+        for (String roomId : keys) {
+            RoomState state = getRoomState(roomId.split(":")[1]);
+            if (state != null) roomList.add(state);
+        }
+
+        return roomList;
+    }
+}
+
 
     public void deleteRoom(String roomId) {
         try (Jedis jedis = jedisPool.getResource()) {

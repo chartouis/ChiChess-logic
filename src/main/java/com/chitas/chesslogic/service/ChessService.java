@@ -32,6 +32,7 @@ public class ChessService implements RoomManager, ChessGameService {
     public ChessService(RedisService redisService, AnnoyingConstants acost) {
         this.redisService = redisService;
         this.acost = acost;
+        loadRooms();
     }
 
     private HashMap<String, Board> roomBoards = new HashMap<>();
@@ -44,11 +45,11 @@ public class ChessService implements RoomManager, ChessGameService {
         Move move;
         if (!promotion.equals("")) {
             move = new Move(Square.fromValue(from), Square.fromValue(to), Piece.fromFenSymbol(promotion)); // possible
-                                                                                                       // exception
-                                                                                                       // abuse. because
-                                                                                                       // im not
-                                                                                                       // checking
-        } else {                                                                                        // of the piece with that promotion exists
+            // exception
+            // abuse. because
+            // im not
+            // checking
+        } else { // of the piece with that promotion exists
             move = new Move(Square.fromValue(from), Square.fromValue(to));
         }
         RoomState state = getRoomState(roomId);
@@ -66,11 +67,11 @@ public class ChessService implements RoomManager, ChessGameService {
             log.info("Move : {} on room : {}", move, roomId);
             state.setPosition(board.getFen());
             state.setHistory(moveList.toSan());
-        
+
             // NOW check the status AFTER the move
             GameStatus status = checkBoardStatus(roomId);
             state.setStatus(status);
-        
+
             if (status == GameStatus.CHECKMATE) {
                 if (board.getSideToMove() == Side.WHITE) {
                     state.setWinner(state.getBlack());
@@ -79,17 +80,17 @@ public class ChessService implements RoomManager, ChessGameService {
                 }
                 log.info("Game ended with: {}", status.name());
             }
-        
+
             redisService.saveRoomState(state);
             return true;
         }
-        
+
         return false;
     }
 
     private GameStatus checkBoardStatus(String roomId) {
         Board board = roomBoards.get(roomId);
-        if(board == null){
+        if (board == null) {
             throw new RoomNotFoundException(getRoomState(roomId));
         }
         if (board.isMated()) {
@@ -192,6 +193,27 @@ public class ChessService implements RoomManager, ChessGameService {
     public boolean resign(String roomId) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'resign'");
+    }
+
+    @Override
+    public void loadRooms() {
+        for (RoomState room : redisService.getAllExistingRooms()) {
+            try {
+                Board board = new Board();
+                MoveList mList = new MoveList();
+
+                board.loadFromFen(room.getPosition());
+                mList.loadFromSan(room.getHistory());
+
+                roomBoards.put(room.getId(), board);
+                roomMoves.put(room.getId(), mList);
+                log.info("loaded room : {}", room.getId());
+            } catch (Exception e) {
+                log.error("Skipping room " + room.getId() + ": corrupted data");
+            }
+        }
+        log.info("------------------LOADING FINISHED------------------");
+
     }
 
 }
