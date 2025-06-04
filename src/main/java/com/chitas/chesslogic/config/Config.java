@@ -11,11 +11,13 @@ import com.chitas.chesslogic.grpc.RoomGrpcController;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.protobuf.services.ProtoReflectionService;
+import lombok.extern.log4j.Log4j2;
 import net.devh.boot.grpc.server.security.authentication.BasicGrpcAuthenticationReader;
 import net.devh.boot.grpc.server.security.authentication.GrpcAuthenticationReader;
 import redis.clients.jedis.Jedis;
 
 @Configuration
+@Log4j2
 public class Config {
 
     @Bean
@@ -45,7 +47,7 @@ public class Config {
     public CommandLineRunner startGrpcServer(Server grpcServer) {
         return args -> {
             grpcServer.start();
-            System.out.println("gRPC Server started on port 4967");
+            log.info("gRPC Server started on port 4967");
         };
     }
 
