@@ -38,7 +38,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = getToken(request);
         String username = jwtService.extractUserName(token); 
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null && token != null){
+        if (username != null || (SecurityContextHolder.getContext().getAuthentication() == null && token != null)){
 
             UserDetails userDetails = context.getBean(CUserDetailsService.class).loadUserByUsername(username);
 
@@ -61,7 +61,7 @@ public class JwtFilter extends OncePerRequestFilter {
         for (Cookie ck : cookies) {
             String name = ck.getName();
             if ("ACCESS-TOKEN-JWTAUTH".equals(name)) {
-                log.info("Found token in cookie: {}", name);
+                log.trace("Found token in cookie: {}", name);
                 return ck.getValue();
             }
         }
