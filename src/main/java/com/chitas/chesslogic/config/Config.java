@@ -45,7 +45,7 @@ public class Config {
 
     @Bean
     public CommandLineRunner startGrpcServer(Server grpcServer) {
-        return args -> {
+        return _ -> {
             grpcServer.start();
             log.info("gRPC Server started on port 4967");
         };
