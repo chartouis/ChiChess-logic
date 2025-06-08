@@ -1,6 +1,7 @@
 package com.chitas.chesslogic.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +23,9 @@ public class MainController {
 
     }
 
-    @PostMapping("/api/move")
-    public ResponseEntity<MoveResponse> doMove(@RequestBody @Valid MoveRequest move) {
-        MoveResponse resp = new MoveResponse(chess.doMove(move.getRoomId(),move.getFrom(), move.getTo(), move.getPromotion()), chess.getRoomState(move.getRoomId()));
+    @PostMapping("/api/game/{roomId}")
+    public ResponseEntity<MoveResponse> doMove(@RequestBody @Valid MoveRequest move, @PathVariable String roomId) {
+        MoveResponse resp = new MoveResponse(chess.doMove(roomId,move.getFrom(), move.getTo(), move.getPromotion()), chess.getRoomState(roomId));
         return ResponseEntity.ok(resp);
     }
 
