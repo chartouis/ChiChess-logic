@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.log4j.Log4j2;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,12 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Log4j2
 public class JWTService {
+
+    public JWTService(){
+        log.info("Starting Jwt-Service");
+    }
 
     private String secretkey = System.getenv("SECRET_KEY_FOR_JWTS");
 
@@ -38,7 +45,6 @@ public class JWTService {
     }
 
     public String extractUserName(String token) {
-        // extract the username from jwt token
         return extractClaim(token, Claims::getSubject);
     }
 

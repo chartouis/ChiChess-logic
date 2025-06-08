@@ -68,7 +68,6 @@ public class ChessService implements RoomManager, ChessGameService {
             state.setPosition(board.getFen());
             state.setHistory(moveList.toSan());
 
-            // NOW check the status AFTER the move
             GameStatus status = checkBoardStatus(roomId);
             state.setStatus(status);
 
@@ -183,24 +182,23 @@ public class ChessService implements RoomManager, ChessGameService {
         if (state == null) {
             return new RoomState.Builder().build();
         }
-        return state; // right now just uses redis, but it should also access postgress and
-                      // look there if it couldn find it on redis
+        return state;
+
     }
 
     @Override
     public boolean offerDraw(String roomId) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'offerDraw'");
     }
 
     @Override
     public boolean resign(String roomId) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'resign'");
     }
 
     @Override
     public void loadRooms() {
+        log.info("-------------------LOADING STARTED------------------");
         for (RoomState room : redisService.getAllExistingRooms()) {
             try {
                 Board board = new Board();

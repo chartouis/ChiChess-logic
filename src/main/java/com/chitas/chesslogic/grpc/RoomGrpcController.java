@@ -8,9 +8,11 @@ import com.chitas.grpc.RoomResponse;
 import com.chitas.grpc.RoomServiceGrpc.RoomServiceImplBase;
 
 import io.grpc.stub.StreamObserver;
+import lombok.extern.log4j.Log4j2;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 @GrpcService
+@Log4j2
 public class RoomGrpcController extends RoomServiceImplBase {
 
     private final ChessService service;
@@ -21,7 +23,7 @@ public class RoomGrpcController extends RoomServiceImplBase {
 
     @Override
     public void createRoom(CreateRoomRequest request, StreamObserver<RoomResponse> responseObserver) {
-        // Call your service here
+        log.info("gRPC: createRoom");
         RoomState room = service.createRoom(
                 request.getCreator(), request.getWhite(), request.getBlack());
 
@@ -36,7 +38,7 @@ public class RoomGrpcController extends RoomServiceImplBase {
 
     @Override
     public void joinRoom(JoinRoomRequest request, StreamObserver<RoomResponse> responseObserver) {
-
+        log.info("gRPC: joinRoom");
         RoomState room = service.joinRoom(request.getRoomId(), request.getVisitor());
 
         RoomResponse response = RoomResponse.newBuilder()

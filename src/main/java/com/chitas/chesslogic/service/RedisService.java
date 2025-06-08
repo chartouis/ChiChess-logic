@@ -3,6 +3,8 @@ package com.chitas.chesslogic.service;
 import com.chitas.chesslogic.model.GameStatus;
 import com.chitas.chesslogic.model.RoomState;
 
+import lombok.extern.log4j.Log4j2;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,13 +15,14 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 @Service
+@Log4j2
 public class RedisService {
 
-    private final JedisPool jedisPool = new JedisPool("localhost", 6379);;
+    public RedisService(){
+        log.info("Starting Redis-Service");
+    }
 
-    // public RedisService(JedisPool jedisPool) {
-    // this.jedisPool = jedisPool;
-    // }
+    private final JedisPool jedisPool = new JedisPool("localhost", 6379);
 
     public void saveRoomState(RoomState roomState) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -67,7 +70,7 @@ public class RedisService {
 
 public List<RoomState> getAllExistingRooms() {
     try (Jedis jedis = jedisPool.getResource()) {
-        Set<String> keys = jedis.keys("room:*"); // use SCAN instead if big
+        Set<String> keys = jedis.keys("room:*");
 
         if (keys.isEmpty()) return Collections.emptyList();
 

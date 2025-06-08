@@ -39,7 +39,7 @@ public class Config {
     public Server grpcServer() {
         return ServerBuilder.forPort(4967)
             .addService(roomGrpcController)
-            .addService(ProtoReflectionService.newInstance()) // Enable reflection
+            .addService(ProtoReflectionService.newInstance())
             .build();
     }
 
@@ -55,9 +55,4 @@ public class Config {
     public GrpcAuthenticationReader grpcAuthenticationReader() {
         return new BasicGrpcAuthenticationReader();
     }
-
-    // @Bean
-    // public JedisPool jedisPool() {
-    // return new JedisPool("localhost", 6379);
-    // }
 }
