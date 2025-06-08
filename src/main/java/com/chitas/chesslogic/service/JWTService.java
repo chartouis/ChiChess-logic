@@ -61,10 +61,10 @@ public class JWTService {
                 .parseSignedClaims(token)
                 .getPayload();
         } catch (io.jsonwebtoken.security.SignatureException e) {
-            System.out.println("Invalid JWT signature: " + e.getMessage());
+            log.trace("Invalid JWT signature: " + e.getMessage());
             return getDefaultClaims();
         } catch (Exception e) {
-            System.out.println("JWT parsing failed: " + e.getMessage());
+            log.trace("JWT parsing failed: " + e.getMessage());
             return getDefaultClaims();
         }
     }
