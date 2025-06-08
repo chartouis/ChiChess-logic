@@ -179,8 +179,12 @@ public class ChessService implements RoomManager, ChessGameService {
     @Override
     public RoomState getRoomState(String roomId) {
         log.debug("Getting a roomState of : {}", roomId);
-        return redisService.getRoomState(roomId); // right now just uses redis, but it should also access postgress and
-                                                  // look there if it couldn find it on redis
+        RoomState state = redisService.getRoomState(roomId);
+        if (state == null) {
+            return new RoomState.Builder().build();
+        }
+        return state; // right now just uses redis, but it should also access postgress and
+                      // look there if it couldn find it on redis
     }
 
     @Override
