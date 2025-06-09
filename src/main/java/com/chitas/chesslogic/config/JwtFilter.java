@@ -54,7 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
     public String getToken(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
-            log.warn("No cookies found in request");
+            log.trace("No cookies found in request" );
             return null;
         }
     
