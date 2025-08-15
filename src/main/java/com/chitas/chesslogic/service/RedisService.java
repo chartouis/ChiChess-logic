@@ -20,9 +20,10 @@ public class RedisService {
 
     public RedisService(){
         log.info("Starting Redis-Service");
+        this.jedisPool = new JedisPool("localhost", 6379);
     }
 
-    private final JedisPool jedisPool = new JedisPool("localhost", 6379);
+    private final JedisPool jedisPool;
 
     public void saveRoomState(RoomState roomState) {
         try (Jedis jedis = jedisPool.getResource()) {
