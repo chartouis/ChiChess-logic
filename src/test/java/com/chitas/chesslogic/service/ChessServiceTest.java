@@ -48,9 +48,10 @@ class ChessServiceTest {
     }
 
     private boolean executeMove(String roomId, String from, String to, String promotion, String player) {
+        String username = "test";
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(player, null));
-        boolean result = chessService.doMove(roomId, from, to, promotion);
+        boolean result = chessService.doMove(roomId, from, to, promotion, username);
         System.out.println(chessService.getRoomState(roomId).getPosition());
         return result;
     }

@@ -26,8 +26,9 @@ public class SecurityConfiguration {
         return http
 
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF if you're testing APIs
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(
+                        auth -> auth
+                                .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class).build();

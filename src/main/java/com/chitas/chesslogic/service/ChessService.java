@@ -1,7 +1,9 @@
 package com.chitas.chesslogic.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -39,7 +41,7 @@ public class ChessService implements RoomManager, ChessGameService {
     private HashMap<String, MoveList> roomMoves = new HashMap<>();
 
     @Override
-    public boolean doMove(String roomId, String from, String to, String promotion) {
+    public boolean doMove(String roomId, String from, String to, String promotion, String player) {
         from = from.toUpperCase();
         to = to.toUpperCase();
         Move move;
@@ -55,7 +57,7 @@ public class ChessService implements RoomManager, ChessGameService {
         RoomState state = getRoomState(roomId);
         Board board = roomBoards.get(roomId);
         MoveList moveList = roomMoves.get(roomId);
-        String player = acost.getCurrentUserUsername();
+        
         if (board == null || moveList == null || state == null) {
             return false;
         }
@@ -216,6 +218,23 @@ public class ChessService implements RoomManager, ChessGameService {
         }
         log.info("------------------LOADING FINISHED------------------");
 
+    }
+
+    // gets every existing RoomState on redis
+    public List<RoomState> getAllExistingRooms() {
+        return redisService.getAllExistingRooms();
+    }
+
+    // gets the id of every existing room
+    public List<String> getAllRoomIds() {
+        List<String> idList = redisService.getAllExistingRooms().stream()
+                .map(room -> room.getId())
+                .collect(Collectors.toList());
+        return idList;
+    }
+
+    public HashMap<String, Board> getBoards() {
+        return roomBoards;
     }
 
 }
