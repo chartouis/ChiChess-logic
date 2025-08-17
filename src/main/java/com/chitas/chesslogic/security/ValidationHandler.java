@@ -1,4 +1,4 @@
-package com.chitas.chesslogic.config;
+package com.chitas.chesslogic.security;
 
 import java.util.HashMap;
 import java.util.Map;

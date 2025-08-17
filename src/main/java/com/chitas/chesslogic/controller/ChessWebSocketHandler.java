@@ -1,4 +1,4 @@
-package com.chitas.chesslogic.config;
+package com.chitas.chesslogic.controller;
 
 import java.util.Map;
 import java.util.Objects;

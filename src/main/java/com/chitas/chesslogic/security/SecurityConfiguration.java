@@ -1,4 +1,4 @@
-package com.chitas.chesslogic.config;
+package com.chitas.chesslogic.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
