@@ -10,9 +10,10 @@ public class RoomState {
     private String black;
     private String white;
     private String position; // FEN
-    private String history;  // SAN moves
+    private String history; // SAN moves
+    private String drawOfferedBy;
     private GameStatus status;
-    private String winner;   // userId of winner, or null if no winner yet
+    private String winner; // userId of winner, or null if no winner yet
 
     private RoomState(Builder builder) {
         this.id = builder.id;
@@ -24,6 +25,7 @@ public class RoomState {
         this.history = builder.history;
         this.status = builder.status;
         this.winner = builder.winner;
+        this.drawOfferedBy = builder.drawOfferedBy;
     }
 
     public static class Builder {
@@ -34,6 +36,7 @@ public class RoomState {
         private String white;
         private String position;
         private String history;
+        private String drawOfferedBy;
         private GameStatus status;
         private String winner;
 
@@ -79,6 +82,11 @@ public class RoomState {
 
         public Builder winner(String winner) {
             this.winner = winner;
+            return this;
+        }
+
+        public Builder drawOfferedBy(String drawOfferedBy) {
+            this.drawOfferedBy = drawOfferedBy;
             return this;
         }
 

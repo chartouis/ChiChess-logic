@@ -29,11 +29,9 @@ import lombok.extern.log4j.Log4j2;
 public class ChessService implements RoomManager, ChessGameService {
 
     private final RedisService redisService;
-    private final AnnoyingConstants acost;
 
     public ChessService(RedisService redisService, AnnoyingConstants acost) {
         this.redisService = redisService;
-        this.acost = acost;
         loadRooms();
     }
 
@@ -57,7 +55,7 @@ public class ChessService implements RoomManager, ChessGameService {
         RoomState state = getRoomState(roomId);
         Board board = roomBoards.get(roomId);
         MoveList moveList = roomMoves.get(roomId);
-        
+
         if (board == null || moveList == null || state == null) {
             return false;
         }
@@ -189,16 +187,6 @@ public class ChessService implements RoomManager, ChessGameService {
     }
 
     @Override
-    public boolean offerDraw(String roomId) {
-        throw new UnsupportedOperationException("Unimplemented method 'offerDraw'");
-    }
-
-    @Override
-    public boolean resign(String roomId) {
-        throw new UnsupportedOperationException("Unimplemented method 'resign'");
-    }
-
-    @Override
     public void loadRooms() {
         log.info("-------------------LOADING STARTED------------------");
         for (RoomState room : redisService.getAllExistingRooms()) {
@@ -235,6 +223,46 @@ public class ChessService implements RoomManager, ChessGameService {
 
     public HashMap<String, Board> getBoards() {
         return roomBoards;
+    }
+
+    @Override
+    public boolean acceptDraw(String roomId, String username) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'acceptDraw'");
+    }
+
+    @Override
+    public boolean offerDraw(String roomId, String username) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'offerDraw'");
+    }
+
+    // The username means the player who resigns. So the winner is the opposite
+    // player
+    @Override
+    public boolean resign(String roomId, String username) {
+        RoomState state = getRoomState(roomId);
+        Board board = roomBoards.get(roomId);
+        if (board == null || state == null) {
+            return false;
+        }
+        if (state.getBlack().equals(username)) {
+            state.setWinner(state.getWhite());
+            state.setStatus(GameStatus.RESIGNED);
+            state.setActive(false);
+            roomBoards.remove(roomId);
+            redisService.saveRoomState(state);
+            return true;
+        }
+        if (state.getWhite().equals(username)) {
+            state.setWinner(state.getBlack());
+            state.setStatus(GameStatus.RESIGNED);
+            state.setActive(false);
+            roomBoards.remove(roomId);
+            return true;
+        }
+        return false;
+
     }
 
 }
