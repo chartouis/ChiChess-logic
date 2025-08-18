@@ -1,5 +1,6 @@
 package com.chitas.chesslogic.controller;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,6 +13,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.chitas.chesslogic.model.MessageType;
 import com.chitas.chesslogic.service.MessageRouter;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,35 +35,46 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
         String gameId = MessageRouter.extractGameId(session);
 
         rooms.computeIfAbsent(gameId, _ -> ConcurrentHashMap.newKeySet()).add(session);
-        System.out.println("Connected: " + session.getId() + " to room " + gameId);
+        log.info("User : {} | Connected : {} | to room : {}",
+                session.getAttributes().get("username"),
+                session.getId(),
+                gameId); // info to trace
     }
 
     @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    public void handleTextMessage(WebSocketSession session, TextMessage message) {
+        log.info("User : {} | Sent Message : {} | in room : {}",
+                session.getAttributes().get("username"),
+                session.getId(),
+                MessageRouter.extractGameId(session)); // info to trace
         ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            JsonNode node = objectMapper.readTree(message.getPayload());
+            String rawType = node.has("type") ? node.get("type").asText() : null;
+            JsonNode rawPayload = node.has("payload") ? node.get("payload") : null;
 
-        JsonNode node = objectMapper.readTree(message.getPayload()); // catch exceptions on bad message payload
-        String rawType = node.has("type") ? node.get("type").asText() : null;
-        JsonNode rawPayload = node.has("payload") ? node.get("payload") : null;
-
-        if (rawType != null && rawPayload != null) {
-            try {
-                MessageType type = MessageType.valueOf(rawType.toUpperCase());
-                switch (type) {
-                    case MOVE:
-                        router.handleMove(session, rawPayload, rooms);
-                        break;
-                    case OFFER_DRAW: // implement other. Offers a draw to the other player
-                    case ACCEPT_DRAW:// Accepts the draw if there is an offer. Offers it if none
-                    case UPDATE: // Gets the current board position, timer and other data which might change
-                    case RESIGN: // Resigning. gives the win to the opposite player
+            if (rawType != null && rawPayload != null) {
+                try {
+                    MessageType type = MessageType.valueOf(rawType.toUpperCase());
+                    switch (type) {
+                        case MOVE:
+                            router.handleMove(session, rawPayload, rooms);
+                            break;
+                        case OFFER_DRAW: // implement other. Offers a draw to the other player
+                        case ACCEPT_DRAW:// Accepts the draw if there is an offer. Offers it if none
+                        case UPDATE: // Gets the current board position, timer and other data which might change
+                        case RESIGN: // Resigning. gives the win to the opposite player
+                    }
+                } catch (IllegalArgumentException e) {
+                    log.info("Unknown MessageType: {}", e.getMessage()); // info to trace
                 }
-
-            } catch (IllegalArgumentException e) {
-                // unknown type -> reject/ignore
             }
+        } catch (JsonProcessingException e) {
+            log.info("Invalid JSON payload: {}", e.getMessage()); // info to trace
+            // optionally notify client or ignore
+        } catch (IOException e) {
+            log.info("IO Exception: {}", e.getMessage()); // info to trace
         }
-
     }
 
     @Override
@@ -74,7 +87,10 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
                 rooms.remove(gameId);
             }
         }
-        System.out.println("Disconnected: " + session.getId() + " from room " + gameId);
+        log.info("User : {} | Disconnected : {} | from room : {}",
+                session.getAttributes().get("username"),
+                session.getId(),
+                gameId); // info to trace
     }
 
 }
