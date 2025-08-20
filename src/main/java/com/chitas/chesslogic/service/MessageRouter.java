@@ -58,7 +58,7 @@ public class MessageRouter {
         }
     }
 
-    private void sendMoveResponse(Map<String, Set<WebSocketSession>> rooms, String gameId, boolean valid)
+    public void sendMoveResponse(Map<String, Set<WebSocketSession>> rooms, String gameId, boolean valid)
             throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         RoomState state = chessService.getRoomState(gameId);
@@ -67,7 +67,7 @@ public class MessageRouter {
         sendMessages(rooms, gameId, json);
     }
 
-    private void sendMessages(Map<String, Set<WebSocketSession>> rooms, String gameId, String messsage)
+    public void sendMessages(Map<String, Set<WebSocketSession>> rooms, String gameId, String messsage)
             throws IOException {
         Set<WebSocketSession> roomSessions = rooms.getOrDefault(gameId, Set.of());
         TextMessage responseMessage = new TextMessage(messsage);
@@ -88,5 +88,6 @@ public class MessageRouter {
         }
         rooms.remove(gameId); // drop references
     }
+
 
 }

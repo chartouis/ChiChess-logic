@@ -34,8 +34,8 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         String gameId = UriIdExtractor.extractGameId(session);
-
         rooms.computeIfAbsent(gameId, _ -> ConcurrentHashMap.newKeySet()).add(session);
+        router.sendMoveResponse(rooms, gameId, true);
         log.info("User : {} | Connected : {} | to room : {}",
                 session.getAttributes().get("username"),
                 session.getId(),
