@@ -13,6 +13,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.chitas.chesslogic.model.MessageType;
 import com.chitas.chesslogic.service.MessageRouter;
+import com.chitas.chesslogic.utils.UriIdExtractor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,7 +33,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String gameId = MessageRouter.extractGameId(session);
+        String gameId = UriIdExtractor.extractGameId(session);
 
         rooms.computeIfAbsent(gameId, _ -> ConcurrentHashMap.newKeySet()).add(session);
         log.info("User : {} | Connected : {} | to room : {}",
@@ -46,7 +47,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
         log.info("User : {} | Sent Message : {} | in room : {}",
                 session.getAttributes().get("username"),
                 session.getId(),
-                MessageRouter.extractGameId(session)); // info to trace
+                UriIdExtractor.extractGameId(session)); // info to trace
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode node = objectMapper.readTree(message.getPayload());
@@ -81,7 +82,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        String gameId = MessageRouter.extractGameId(session);
+        String gameId = UriIdExtractor.extractGameId(session);
         Set<WebSocketSession> roomSessions = rooms.get(gameId);
         if (roomSessions != null) {
             roomSessions.remove(session);
