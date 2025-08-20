@@ -3,7 +3,6 @@ package com.chitas.chesslogic.service;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -13,6 +12,7 @@ import org.springframework.web.socket.WebSocketSession;
 import com.chitas.chesslogic.model.MoveRequest;
 import com.chitas.chesslogic.model.MoveResponse;
 import com.chitas.chesslogic.model.RoomState;
+import com.chitas.chesslogic.utils.UriIdExtractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -30,7 +30,7 @@ public class MessageRouter {
         ObjectMapper objectMapper = new ObjectMapper();
         MoveRequest move = objectMapper.treeToValue(payload, MoveRequest.class);
 
-        String gameId = extractGameId(session);
+        String gameId = UriIdExtractor.extractGameId(session);
 
         String username = (String) session.getAttributes().get("username");
 
@@ -44,7 +44,7 @@ public class MessageRouter {
 
     public void handleResign(WebSocketSession session, Map<String, Set<WebSocketSession>> rooms) throws IOException {
 
-        String gameId = extractGameId(session);
+        String gameId = UriIdExtractor.extractGameId(session);
         String username = (String) session.getAttributes().get("username");
 
         if (gameId == null || username == null) {
@@ -56,12 +56,6 @@ public class MessageRouter {
         if (valid) {
             closeSessions(rooms, gameId);
         }
-    }
-
-    public static String extractGameId(WebSocketSession session) {
-        // Example path: /ws/game/abc123
-        String path = Objects.requireNonNull(session.getUri()).getPath();
-        return path.substring(path.lastIndexOf("/") + 1);
     }
 
     private void sendMoveResponse(Map<String, Set<WebSocketSession>> rooms, String gameId, boolean valid)
