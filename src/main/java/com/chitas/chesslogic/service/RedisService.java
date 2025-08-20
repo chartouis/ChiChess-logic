@@ -18,7 +18,7 @@ import redis.clients.jedis.JedisPool;
 @Log4j2
 public class RedisService {
 
-    public RedisService(){
+    public RedisService() {
         log.info("Starting Redis-Service");
         this.jedisPool = new JedisPool("localhost", 6379);
     }
@@ -69,23 +69,24 @@ public class RedisService {
         }
     }
 
-public List<RoomState> getAllExistingRooms() {
-    try (Jedis jedis = jedisPool.getResource()) {
-        Set<String> keys = jedis.keys("room:*");
+    public List<RoomState> getAllExistingRooms() {
+        try (Jedis jedis = jedisPool.getResource()) {
+            Set<String> keys = jedis.keys("room:*");
 
-        if (keys.isEmpty()) return Collections.emptyList();
+            if (keys.isEmpty())
+                return Collections.emptyList();
 
-        List<RoomState> roomList = new ArrayList<>();
+            List<RoomState> roomList = new ArrayList<>();
 
-        for (String roomId : keys) {
-            RoomState state = getRoomState(roomId.split(":")[1]);
-            if (state != null) roomList.add(state);
+            for (String roomId : keys) {
+                RoomState state = getRoomState(roomId.split(":")[1]);
+                if (state != null)
+                    roomList.add(state);
+            }
+
+            return roomList;
         }
-
-        return roomList;
     }
-}
-
 
     public void deleteRoom(String roomId) {
         try (Jedis jedis = jedisPool.getResource()) {
@@ -99,6 +100,12 @@ public List<RoomState> getAllExistingRooms() {
             if (!keys.isEmpty()) {
                 jedis.del(keys.toArray(new String[0]));
             }
+        }
+    }
+
+    public boolean hasRoomId(String roomId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            return jedis.exists("room:" + roomId);
         }
     }
 }
