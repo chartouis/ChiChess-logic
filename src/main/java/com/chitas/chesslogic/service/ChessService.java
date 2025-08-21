@@ -236,7 +236,7 @@ public class ChessService implements RoomManager, ChessGameService {
             return false;
         }
         if (!state.getDrawOfferedBy().equals(username)
-                && (username.equals(state.getBlack()) || username.equals(state.getWhite()))) {
+                && state.hasPlayer(username)) {
             closeRoom(state, GameStatus.DRAW, null);
             return true;
         }
@@ -250,7 +250,7 @@ public class ChessService implements RoomManager, ChessGameService {
             return false;
         }
         if (state.getDrawOfferedBy().equals(null)
-                && (username.equals(state.getBlack()) || username.equals(state.getWhite()))) {
+                && state.hasPlayer(username)) {
             state.setDrawOfferedBy(username);
             redisService.saveRoomState(state);
             return true;

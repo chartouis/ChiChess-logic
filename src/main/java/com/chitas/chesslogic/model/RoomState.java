@@ -15,6 +15,10 @@ public class RoomState {
     private GameStatus status;
     private String winner; // userId of winner, or null if no winner yet
 
+    public boolean hasPlayer(String username) {
+        return(black.equals(username) || white.equals(username));
+    }
+
     private RoomState(Builder builder) {
         this.id = builder.id;
         this.isActive = builder.isActive;
