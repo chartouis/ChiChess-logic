@@ -4,6 +4,5 @@ public enum MessageType {
     MOVE,
     UPDATE,
     RESIGN,
-    OFFER_DRAW,
-    ACCEPT_DRAW,
+    DRAW,
 }

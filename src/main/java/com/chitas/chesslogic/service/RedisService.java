@@ -36,6 +36,7 @@ public class RedisService {
             jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : "");
             jedis.hset(key, "status", roomState.getStatus().name() != null ? roomState.getStatus().name() : "");
             jedis.hset(key, "winner", roomState.getWinner() != null ? roomState.getWinner() : "");
+            jedis.hset(key, "drawOfferedBy", roomState.getDrawOfferedBy() != null ? roomState.getDrawOfferedBy() : "");
 
         }
     }
@@ -54,6 +55,7 @@ public class RedisService {
             String history = jedis.hget(key, "history");
             String status = jedis.hget(key, "status");
             String winner = jedis.hget(key, "winner");
+            String drawOfferedBy = jedis.hget(key, "drawOfferedBy");
 
             return new RoomState.Builder()
                     .id(roomId)
@@ -65,6 +67,7 @@ public class RedisService {
                     .history(history)
                     .status(GameStatus.valueOf(status))
                     .winner(winner)
+                    .drawOfferedBy(drawOfferedBy)
                     .build();
         }
     }

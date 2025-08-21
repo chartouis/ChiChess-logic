@@ -63,8 +63,8 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
                             break;
                         case RESIGN:
                             router.handleResign(session, rooms);
-                        case OFFER_DRAW: // implement other. Offers a draw to the other player
-                        case ACCEPT_DRAW:// Accepts the draw if there is an offer. Offers it if none
+                        case DRAW: 
+                            router.handleDraw(session, rooms);
                         case UPDATE: // Gets the current board position, timer and other data which might change
 
                     }

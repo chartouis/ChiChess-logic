@@ -34,7 +34,7 @@ public class MessageRouter {
 
         String username = (String) session.getAttributes().get("username");
 
-        if (move == null || gameId == null || username == null) {
+        if (move == null || gameId.equals(null) || username.equals(null)) {
             return;
         }
 
@@ -47,7 +47,7 @@ public class MessageRouter {
         String gameId = UriIdExtractor.extractGameId(session);
         String username = (String) session.getAttributes().get("username");
 
-        if (gameId == null || username == null) {
+        if (gameId.equals(null) || username.equals(null)) {
             return;
         }
 
@@ -56,6 +56,24 @@ public class MessageRouter {
         if (valid) {
             closeSessions(rooms, gameId);
         }
+    }
+
+    public void handleDraw(WebSocketSession session, Map<String, Set<WebSocketSession>> rooms) throws IOException {
+        String gameId = UriIdExtractor.extractGameId(session);
+        String username = (String) session.getAttributes().get("username");
+        RoomState state = chessService.getRoomState(gameId);
+        if (gameId.equals(null) || username.equals(null) || state == null) {
+            return;
+        }
+
+        boolean valid = chessService.acceptDraw(gameId, username);
+
+        if (!valid) {
+            valid = chessService.offerDraw(gameId, username);
+        }
+        sendMoveResponse(rooms, gameId, valid);
+        return;
+
     }
 
     public void sendMoveResponse(Map<String, Set<WebSocketSession>> rooms, String gameId, boolean valid)
@@ -88,6 +106,5 @@ public class MessageRouter {
         }
         rooms.remove(gameId); // drop references
     }
-
 
 }

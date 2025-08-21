@@ -2,6 +2,7 @@ package com.chitas.chesslogic.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -235,8 +236,8 @@ public class ChessService implements RoomManager, ChessGameService {
         if (state == null) {
             return false;
         }
-        if (!state.getDrawOfferedBy().equals(username)
-                && state.hasPlayer(username)) {
+        if (!Objects.equals(state.getDrawOfferedBy(), username)
+                && state.hasPlayer(username) && !Objects.equals(state.getDrawOfferedBy(), null)) {
             closeRoom(state, GameStatus.DRAW, null);
             return true;
         }
@@ -249,7 +250,7 @@ public class ChessService implements RoomManager, ChessGameService {
         if (state == null) {
             return false;
         }
-        if (state.getDrawOfferedBy().equals(null)
+        if (Objects.equals(state.getDrawOfferedBy(), null)
                 && state.hasPlayer(username)) {
             state.setDrawOfferedBy(username);
             redisService.saveRoomState(state);
@@ -281,7 +282,7 @@ public class ChessService implements RoomManager, ChessGameService {
 
     private void closeRoom(RoomState state, GameStatus status, String winner) {
         state.setWinner(winner);
-        state.setStatus(GameStatus.RESIGNED);
+        state.setStatus(status);
         state.setActive(false);
         roomBoards.remove(state.getId());
         redisService.saveRoomState(state);
