@@ -71,6 +71,10 @@ public class ChessService implements RoomManager, ChessGameService {
             GameStatus status = checkBoardStatus(roomId);
             state.setStatus(status);
 
+            if (!playerToMove.equals(state.getDrawOfferedBy())) {
+                state.setDrawOfferedBy(null);
+            }
+
             if (status == GameStatus.CHECKMATE) {
                 if (board.getSideToMove() == Side.WHITE) {
                     state.setWinner(state.getBlack());
@@ -227,14 +231,31 @@ public class ChessService implements RoomManager, ChessGameService {
 
     @Override
     public boolean acceptDraw(String roomId, String username) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'acceptDraw'");
+        RoomState state = getRoomState(roomId);
+        if (state == null) {
+            return false;
+        }
+        if (!state.getDrawOfferedBy().equals(username)
+                && (username.equals(state.getBlack()) || username.equals(state.getWhite()))) {
+            closeRoom(state, GameStatus.DRAW, null);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean offerDraw(String roomId, String username) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'offerDraw'");
+        RoomState state = getRoomState(roomId);
+        if (state == null) {
+            return false;
+        }
+        if (state.getDrawOfferedBy().equals(null)
+                && (username.equals(state.getBlack()) || username.equals(state.getWhite()))) {
+            state.setDrawOfferedBy(username);
+            redisService.saveRoomState(state);
+            return true;
+        }
+        return false;
     }
 
     // The username means the player who resigns. So the winner is the opposite
@@ -247,22 +268,23 @@ public class ChessService implements RoomManager, ChessGameService {
             return false;
         }
         if (state.getBlack().equals(username)) {
-            state.setWinner(state.getWhite());
-            state.setStatus(GameStatus.RESIGNED);
-            state.setActive(false);
-            roomBoards.remove(roomId);
-            redisService.saveRoomState(state);
+            closeRoom(state, GameStatus.RESIGNED, state.getWhite());
             return true;
         }
         if (state.getWhite().equals(username)) {
-            state.setWinner(state.getBlack());
-            state.setStatus(GameStatus.RESIGNED);
-            state.setActive(false);
-            roomBoards.remove(roomId);
+            closeRoom(state, GameStatus.RESIGNED, state.getBlack());
             return true;
         }
         return false;
 
+    }
+
+    private void closeRoom(RoomState state, GameStatus status, String winner) {
+        state.setWinner(winner);
+        state.setStatus(GameStatus.RESIGNED);
+        state.setActive(false);
+        roomBoards.remove(state.getId());
+        redisService.saveRoomState(state);
     }
 
 }
