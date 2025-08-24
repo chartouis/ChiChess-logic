@@ -1,0 +1,31 @@
+[
+  {
+    "name": "blitz",
+    "initialWhite": 300,
+    "initialBlack": 300,
+    "incrementWhite": 2,
+    "incrementBlack": 2
+  },
+  {
+    "name": "bullet",
+    "initialWhite": 60,
+    "initialBlack": 60,
+    "incrementWhite": 1,
+    "incrementBlack": 1
+  },
+  {
+    "name": "classical",
+    "initialWhite": 1800,
+    "initialBlack": 1800,
+    "incrementWhite": 0,
+    "incrementBlack": 0
+  },
+    {
+    "name": "rapid",
+    "initialWhite": 600,
+    "initialBlack": 600,
+    "incrementWhite": 0,
+    "incrementBlack": 0
+  }
+]
+
