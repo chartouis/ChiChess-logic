@@ -34,10 +34,15 @@ public class RedisService {
             jedis.hset(key, "black", roomState.getBlack() != null ? roomState.getBlack() : "");
             jedis.hset(key, "position", roomState.getPosition() != null ? roomState.getPosition() : "");
             jedis.hset(key, "history", roomState.getHistory() != null ? roomState.getHistory() : "");
-            jedis.hset(key, "status", roomState.getStatus().name() != null ? roomState.getStatus().name() : "");
+            jedis.hset(key, "status", roomState.getStatus() != null ? roomState.getStatus().name() : "");
             jedis.hset(key, "winner", roomState.getWinner() != null ? roomState.getWinner() : "");
             jedis.hset(key, "drawOfferedBy", roomState.getDrawOfferedBy() != null ? roomState.getDrawOfferedBy() : "");
+            jedis.hset(key, "gameType", roomState.getGameType() != null ? roomState.getGameType() : "");
 
+            // Timer fields
+            jedis.hset(key, "remainingWhite", String.valueOf(roomState.getRemainingWhite()));
+            jedis.hset(key, "remainingBlack", String.valueOf(roomState.getRemainingBlack()));
+            jedis.hset(key, "lastMoveEpoch", String.valueOf(roomState.getLastMoveEpoch()));
         }
     }
 
@@ -56,6 +61,12 @@ public class RedisService {
             String status = jedis.hget(key, "status");
             String winner = jedis.hget(key, "winner");
             String drawOfferedBy = jedis.hget(key, "drawOfferedBy");
+            String gameType = jedis.hget(key, "gameType");
+
+            // Timer fields
+            String remainingWhite = jedis.hget(key, "remainingWhite");
+            String remainingBlack = jedis.hget(key, "remainingBlack");
+            String lastMoveEpoch = jedis.hget(key, "lastMoveEpoch");
 
             return new RoomState.Builder()
                     .id(roomId)
@@ -65,9 +76,13 @@ public class RedisService {
                     .white(white)
                     .position(position)
                     .history(history)
-                    .status(GameStatus.valueOf(status))
+                    .status(status != null && !status.isEmpty() ? GameStatus.valueOf(status) : GameStatus.WAITING)
                     .winner(winner)
                     .drawOfferedBy(drawOfferedBy)
+                    .gameType(gameType)
+                    .remainingWhite(remainingWhite != null ? Long.parseLong(remainingWhite) : 0L)
+                    .remainingBlack(remainingBlack != null ? Long.parseLong(remainingBlack) : 0L)
+                    .lastMoveEpoch(lastMoveEpoch != null ? Long.parseLong(lastMoveEpoch) : 0L)
                     .build();
         }
     }

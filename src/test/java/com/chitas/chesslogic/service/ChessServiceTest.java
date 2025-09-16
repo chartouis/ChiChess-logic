@@ -30,7 +30,7 @@ class ChessServiceTest {
     void testCreateUpdateDeleteRoom() {
         String creatorId = "user1";
         String white = "user1";
-        RoomState createdRoom = chessService.createRoom(creatorId, white, "");
+        RoomState createdRoom = chessService.createRoom(creatorId, white, "", "rapid");
         assertNotNull(createdRoom.getId());
         assertEquals(creatorId, createdRoom.getCreator());
         assertNotNull(createdRoom.getPosition());
@@ -68,7 +68,7 @@ class ChessServiceTest {
     void testGameUntilWhiteCheckmatesBlack() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
         assertEquals(whitePlayer, room.getWhite());
         assertEquals(blackPlayer, room.getBlack());
@@ -94,7 +94,7 @@ class ChessServiceTest {
     void testGameUntilBlackCheckmatesWhite() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
         String[] moves = {
@@ -115,7 +115,7 @@ class ChessServiceTest {
     void testThreefoldRepetitionDraw() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
         String[] moves = {
@@ -139,7 +139,7 @@ class ChessServiceTest {
     void testStalemate() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
         String[] moves = {
@@ -180,7 +180,7 @@ class ChessServiceTest {
     void testPawnPromotionToQueen() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
         String[] moves = {
@@ -218,7 +218,7 @@ class ChessServiceTest {
     void testPawnPromotionToKnight() {
         String whitePlayer = "whiteUser";
         String blackPlayer = "blackUser";
-        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "");
+        RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
 
         String[] moves = {

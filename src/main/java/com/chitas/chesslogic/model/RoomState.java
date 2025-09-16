@@ -14,9 +14,15 @@ public class RoomState {
     private String drawOfferedBy;
     private GameStatus status;
     private String winner; // userId of winner, or null if no winner yet
+    private String gameType; // String because it only needs to know what gameType, not exactly the data associated with the gameType
+
+    // Timer fields
+    private long remainingWhite;
+    private long remainingBlack;
+    private long lastMoveEpoch;
 
     public boolean hasPlayer(String username) {
-        return(black.equals(username) || white.equals(username));
+        return (black.equals(username) || white.equals(username));
     }
 
     private RoomState(Builder builder) {
@@ -30,6 +36,10 @@ public class RoomState {
         this.status = builder.status;
         this.winner = builder.winner;
         this.drawOfferedBy = builder.drawOfferedBy;
+        this.gameType = builder.gameType;
+        this.remainingWhite = builder.remainingWhite;
+        this.remainingBlack = builder.remainingBlack;
+        this.lastMoveEpoch = builder.lastMoveEpoch;
     }
 
     public static class Builder {
@@ -43,6 +53,12 @@ public class RoomState {
         private String drawOfferedBy;
         private GameStatus status;
         private String winner;
+        private String gameType;
+
+        // Timer fields
+        private long remainingWhite;
+        private long remainingBlack;
+        private long lastMoveEpoch;
 
         public Builder id(String id) {
             this.id = id;
@@ -91,6 +107,26 @@ public class RoomState {
 
         public Builder drawOfferedBy(String drawOfferedBy) {
             this.drawOfferedBy = drawOfferedBy;
+            return this;
+        }
+
+        public Builder gameType(String gameType) {
+            this.gameType = gameType;
+            return this;
+        }
+
+        public Builder remainingWhite(long remainingWhite) {
+            this.remainingWhite = remainingWhite;
+            return this;
+        }
+
+        public Builder remainingBlack(long remainingBlack) {
+            this.remainingBlack = remainingBlack;
+            return this;
+        }
+
+        public Builder lastMoveEpoch(long lastMoveEpoch) {
+            this.lastMoveEpoch = lastMoveEpoch;
             return this;
         }
 
