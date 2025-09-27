@@ -14,9 +14,10 @@ public class RoomState {
     private String drawOfferedBy;
     private GameStatus status;
     private String winner; // userId of winner, or null if no winner yet
-    private String gameType; // String because it only needs to know what gameType, not exactly the data associated with the gameType
+    private String gameType; // String because it only needs to know what gameType, not exactly the data
+                             // associated with the gameType
 
-    // Timer fields
+    // Timer fields in miliseconds
     private long remainingWhite;
     private long remainingBlack;
     private long lastMoveEpoch;

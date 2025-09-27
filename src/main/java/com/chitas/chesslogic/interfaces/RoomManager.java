@@ -4,7 +4,7 @@ import com.chitas.chesslogic.model.RoomState;
 
 public interface RoomManager {
 
-        RoomState createRoom(String creator, String white, String black);
+        RoomState createRoom(String creator, String white, String black, String gameType);
 
         RoomState joinRoom(String roomId, String visitorId);
 

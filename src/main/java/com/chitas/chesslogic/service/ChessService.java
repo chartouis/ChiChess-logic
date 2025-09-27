@@ -12,7 +12,6 @@ import com.chitas.chesslogic.interfaces.ChessGameService;
 import com.chitas.chesslogic.interfaces.RoomManager;
 import com.chitas.chesslogic.model.GameStatus;
 import com.chitas.chesslogic.model.RoomState;
-import com.chitas.chesslogic.utils.AnnoyingConstants;
 import com.chitas.chesslogic.utils.RoomFullException;
 import com.chitas.chesslogic.utils.RoomNotFoundException;
 import com.chitas.chesslogic.utils.SamePlayerException;
@@ -30,14 +29,19 @@ import lombok.extern.log4j.Log4j2;
 public class ChessService implements RoomManager, ChessGameService {
 
     private final RedisService redisService;
+    // private final GamePresetsLoader gLoader;
 
-    public ChessService(RedisService redisService, AnnoyingConstants acost) {
+    public ChessService(RedisService redisService) {
         this.redisService = redisService;
+        // this.gLoader = gLoader;
+        // settings = new HashMap<>(gLoader.loadPresets());
+
         loadRooms();
     }
 
     private HashMap<String, Board> roomBoards = new HashMap<>();
     private HashMap<String, MoveList> roomMoves = new HashMap<>();
+    // private HashMap<String, GameType> settings;
 
     @Override
     public boolean doMove(String roomId, String from, String to, String promotion, String player) {
@@ -69,6 +73,8 @@ public class ChessService implements RoomManager, ChessGameService {
             state.setPosition(board.getFen());
             state.setHistory(moveList.toSan());
 
+            state = doTimer(state);
+
             GameStatus status = checkBoardStatus(roomId);
             state.setStatus(status);
 
@@ -90,6 +96,20 @@ public class ChessService implements RoomManager, ChessGameService {
         }
 
         return false;
+    }
+
+    private RoomState doTimer(RoomState state) {
+        boolean whiteToMove = state.getPosition().split(" ")[1].equals("w");
+        Long currentTimeInMS = System.currentTimeMillis();
+        boolean firstMove = state.getPosition().split(" ")[5].equals("1");
+        if (firstMove) {
+            state.setLastMoveEpoch(currentTimeInMS);
+        } else if (whiteToMove) {
+            state.setRemainingWhite(state.getRemainingWhite() - (currentTimeInMS - state.getLastMoveEpoch()));
+        } else {
+            state.setRemainingBlack(state.getRemainingBlack() - (currentTimeInMS - state.getLastMoveEpoch()));
+        }
+        return state;
     }
 
     private GameStatus checkBoardStatus(String roomId) {
@@ -117,7 +137,7 @@ public class ChessService implements RoomManager, ChessGameService {
     }
 
     @Override
-    public RoomState createRoom(String creator, String white, String black) {
+    public RoomState createRoom(String creator, String white, String black, String gameType) {
         log.info("Creating new room for creator: {}", creator);
 
         String roomId = generateRoomUUID();
