@@ -67,13 +67,17 @@ public class ChessService implements RoomManager, ChessGameService {
 
         String playerToMove = board.getSideToMove() == Side.WHITE ? state.getWhite() : state.getBlack();
 
-        if (player.equals(playerToMove) && board.doMove(move, true)) {
+        if (player.equals(playerToMove) && board.doMove(move, true) && state.getStatus() == GameStatus.ONGOING) {
             moveList.add(move);
             log.info("Move : {} on room : {}", move, roomId);
             state.setPosition(board.getFen());
             state.setHistory(moveList.toSan());
 
-            state = doTimer(state);
+            state.updateTimer();
+            if (state.checkTimerRunout()) {
+                redisService.saveRoomState(state);
+                return true;
+            }
 
             GameStatus status = checkBoardStatus(roomId);
             state.setStatus(status);
@@ -96,20 +100,6 @@ public class ChessService implements RoomManager, ChessGameService {
         }
 
         return false;
-    }
-
-    private RoomState doTimer(RoomState state) {
-        boolean whiteToMove = state.getPosition().split(" ")[1].equals("w");
-        Long currentTimeInMS = System.currentTimeMillis();
-        boolean firstMove = state.getPosition().split(" ")[5].equals("1");
-        if (firstMove) {
-            state.setLastMoveEpoch(currentTimeInMS);
-        } else if (whiteToMove) {
-            state.setRemainingWhite(state.getRemainingWhite() - (currentTimeInMS - state.getLastMoveEpoch()));
-        } else {
-            state.setRemainingBlack(state.getRemainingBlack() - (currentTimeInMS - state.getLastMoveEpoch()));
-        }
-        return state;
     }
 
     private GameStatus checkBoardStatus(String roomId) {

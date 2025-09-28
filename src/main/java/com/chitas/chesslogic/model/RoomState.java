@@ -26,6 +26,34 @@ public class RoomState {
         return (black.equals(username) || white.equals(username));
     }
 
+    public boolean checkTimerRunout() {
+        if (getRemainingWhite() <= 0) {
+            setStatus(GameStatus.TIMEOUT);
+            setWinner(getBlack());
+            return true;
+        }
+        if (getRemainingBlack() <= 0) {
+            setStatus(GameStatus.TIMEOUT);
+            setWinner(getWhite());
+            return true;
+        }
+        return false;
+    }
+
+    public void updateTimer() {
+        boolean whiteToMove = getPosition().split(" ")[1].equals("w");
+        long currentTimeInMS = System.currentTimeMillis();
+        boolean firstMove = getPosition().split(" ")[5].equals("1");
+
+        if (firstMove) {
+            setLastMoveEpoch(currentTimeInMS);
+        } else if (whiteToMove) {
+            setRemainingWhite(getRemainingWhite() - (currentTimeInMS - getLastMoveEpoch()));
+        } else {
+            setRemainingBlack(getRemainingBlack() - (currentTimeInMS - getLastMoveEpoch()));
+        }
+    }
+
     private RoomState(Builder builder) {
         this.id = builder.id;
         this.isActive = builder.isActive;
