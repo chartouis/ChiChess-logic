@@ -1,4 +1,7 @@
 # Backend IDE and build files
+bin/
+run.bat
+.vscode/
 .idea/
 .gradle/
 build/
