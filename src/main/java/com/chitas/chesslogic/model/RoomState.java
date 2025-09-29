@@ -40,7 +40,7 @@ public class RoomState {
         return false;
     }
 
-    public void updateTimer() {
+    public void updateTimer(long incrementWhite, long incrementBlack) {
         boolean whiteToMove = getPosition().split(" ")[1].equals("w");
         long currentTimeInMS = System.currentTimeMillis();
         boolean firstMove = getPosition().split(" ")[5].equals("1");
@@ -48,9 +48,9 @@ public class RoomState {
         if (firstMove) {
             setLastMoveEpoch(currentTimeInMS);
         } else if (whiteToMove) {
-            setRemainingWhite(getRemainingWhite() - (currentTimeInMS - getLastMoveEpoch()));
+            setRemainingWhite(getRemainingWhite() - (currentTimeInMS - getLastMoveEpoch()) + incrementWhite);
         } else {
-            setRemainingBlack(getRemainingBlack() - (currentTimeInMS - getLastMoveEpoch()));
+            setRemainingBlack(getRemainingBlack() - (currentTimeInMS - getLastMoveEpoch()) + incrementBlack);
         }
     }
 

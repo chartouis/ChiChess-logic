@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import com.chitas.chesslogic.interfaces.ChessGameService;
 import com.chitas.chesslogic.interfaces.RoomManager;
 import com.chitas.chesslogic.model.GameStatus;
+import com.chitas.chesslogic.model.GameType;
 import com.chitas.chesslogic.model.RoomState;
+import com.chitas.chesslogic.utils.GamePresetsLoader;
 import com.chitas.chesslogic.utils.RoomFullException;
 import com.chitas.chesslogic.utils.RoomNotFoundException;
 import com.chitas.chesslogic.utils.SamePlayerException;
@@ -31,17 +33,17 @@ public class ChessService implements RoomManager, ChessGameService {
     private final RedisService redisService;
     // private final GamePresetsLoader gLoader;
 
-    public ChessService(RedisService redisService) {
+    public ChessService(RedisService redisService, GamePresetsLoader gLoader) {
         this.redisService = redisService;
         // this.gLoader = gLoader;
-        // settings = new HashMap<>(gLoader.loadPresets());
+        settings = new HashMap<>(gLoader.loadPresets());
 
         loadRooms();
     }
 
     private HashMap<String, Board> roomBoards = new HashMap<>();
     private HashMap<String, MoveList> roomMoves = new HashMap<>();
-    // private HashMap<String, GameType> settings;
+    private HashMap<String, GameType> settings;
 
     @Override
     public boolean doMove(String roomId, String from, String to, String promotion, String player) {
@@ -67,36 +69,41 @@ public class ChessService implements RoomManager, ChessGameService {
 
         String playerToMove = board.getSideToMove() == Side.WHITE ? state.getWhite() : state.getBlack();
 
-        if (player.equals(playerToMove) && board.doMove(move, true) && state.getStatus() == GameStatus.ONGOING) {
-            moveList.add(move);
-            log.info("Move : {} on room : {}", move, roomId);
-            state.setPosition(board.getFen());
-            state.setHistory(moveList.toSan());
+        if (player.equals(playerToMove) && board.isMoveLegal(move, true)
+                && state.getStatus() == GameStatus.ONGOING) {
 
-            state.updateTimer();
+            GameType type = settings.get(state.getGameType());
+            state.updateTimer(type.getIncrementWhite(), type.getIncrementBlack());
             if (state.checkTimerRunout()) {
                 redisService.saveRoomState(state);
                 return true;
             }
 
-            GameStatus status = checkBoardStatus(roomId);
-            state.setStatus(status);
+            if (board.doMove(move, true)) {
+                moveList.add(move);
 
-            if (!playerToMove.equals(state.getDrawOfferedBy())) {
-                state.setDrawOfferedBy(null);
-            }
+                log.info("Move : {} on room : {}", move, roomId);
+                state.setPosition(board.getFen());
+                state.setHistory(moveList.toSan());
+                GameStatus status = checkBoardStatus(roomId);
+                state.setStatus(status);
 
-            if (status == GameStatus.CHECKMATE) {
-                if (board.getSideToMove() == Side.WHITE) {
-                    state.setWinner(state.getBlack());
-                } else {
-                    state.setWinner(state.getWhite());
+                if (!playerToMove.equals(state.getDrawOfferedBy())) {
+                    state.setDrawOfferedBy(null);
                 }
-                log.info("Game ended with: {}", status.name());
-            }
 
-            redisService.saveRoomState(state);
-            return true;
+                if (status == GameStatus.CHECKMATE) {
+                    if (board.getSideToMove() == Side.WHITE) {
+                        state.setWinner(state.getBlack());
+                    } else {
+                        state.setWinner(state.getWhite());
+                    }
+                    log.info("Game ended with: {}", status.name());
+                }
+
+                redisService.saveRoomState(state);
+                return true;
+            }
         }
 
         return false;
@@ -128,9 +135,9 @@ public class ChessService implements RoomManager, ChessGameService {
 
     @Override
     public RoomState createRoom(String creator, String white, String black, String gameType) {
-        log.info("Creating new room for creator: {}", creator);
-
+        log.info("Creating {} for creator: {}", gameType, creator);
         String roomId = generateRoomUUID();
+        GameType type = settings.get(gameType);
         log.debug("Generated roomId: {}", roomId);
 
         Board board = new Board();
@@ -151,6 +158,9 @@ public class ChessService implements RoomManager, ChessGameService {
                 .history(history)
                 .status(GameStatus.ONGOING)
                 .winner("")
+                .remainingWhite(type.getInitialWhite())
+                .remainingBlack(type.getInitialBlack())
+                .gameType(gameType)
                 .build();
 
         if (white.equals(black)) {

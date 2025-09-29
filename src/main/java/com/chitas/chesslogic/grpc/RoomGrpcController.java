@@ -25,7 +25,7 @@ public class RoomGrpcController extends RoomServiceImplBase {
     public void createRoom(CreateRoomRequest request, StreamObserver<RoomResponse> responseObserver) {
         log.info("gRPC: createRoom");
         RoomState room = service.createRoom(
-                request.getCreator(), request.getWhite(), request.getBlack());
+                request.getCreator(), request.getWhite(), request.getBlack(), request.getGameType());
 
         RoomResponse response = RoomResponse.newBuilder()
                 .setRoomId(room.getId())
