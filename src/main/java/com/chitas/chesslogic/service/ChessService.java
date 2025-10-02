@@ -24,6 +24,7 @@ import com.github.bhlangonijr.chesslib.Square;
 import com.github.bhlangonijr.chesslib.move.Move;
 import com.github.bhlangonijr.chesslib.move.MoveList;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 
 @Service
@@ -31,22 +32,23 @@ import lombok.extern.log4j.Log4j2;
 public class ChessService implements RoomManager, ChessGameService {
 
     private final RedisService redisService;
-    // private final GamePresetsLoader gLoader;
+    private final PostgresService postgresService;
 
-    public ChessService(RedisService redisService, GamePresetsLoader gLoader) {
+    public ChessService(RedisService redisService, GamePresetsLoader gLoader, PostgresService postgresService) {
         this.redisService = redisService;
+        this.postgresService = postgresService;
         // this.gLoader = gLoader;
         settings = new HashMap<>(gLoader.loadPresets());
 
         loadRooms();
     }
 
-    private HashMap<String, Board> roomBoards = new HashMap<>();
-    private HashMap<String, MoveList> roomMoves = new HashMap<>();
+    private HashMap<UUID, Board> roomBoards = new HashMap<>();
+    private HashMap<UUID, MoveList> roomMoves = new HashMap<>();
     private HashMap<String, GameType> settings;
 
     @Override
-    public boolean doMove(String roomId, String from, String to, String promotion, String player) {
+    public boolean doMove(UUID roomId, String from, String to, String promotion, String player) {
         from = from.toUpperCase();
         to = to.toUpperCase();
         Move move;
@@ -109,7 +111,7 @@ public class ChessService implements RoomManager, ChessGameService {
         return false;
     }
 
-    private GameStatus checkBoardStatus(String roomId) {
+    private GameStatus checkBoardStatus(UUID roomId) {
         Board board = roomBoards.get(roomId);
         if (board == null) {
             throw new RoomNotFoundException(getRoomState(roomId));
@@ -129,14 +131,14 @@ public class ChessService implements RoomManager, ChessGameService {
         return GameStatus.ONGOING;
     }
 
-    private String generateRoomUUID() {
-        return UUID.randomUUID().toString();
+    private UUID generateRoomUUID() {
+        return UUID.randomUUID();
     }
 
     @Override
     public RoomState createRoom(String creator, String white, String black, String gameType) {
         log.info("Creating {} for creator: {}", gameType, creator);
-        String roomId = generateRoomUUID();
+        UUID roomId = generateRoomUUID();
         GameType type = settings.get(gameType);
         log.debug("Generated roomId: {}", roomId);
 
@@ -172,7 +174,7 @@ public class ChessService implements RoomManager, ChessGameService {
     }
 
     @Override
-    public RoomState joinRoom(String roomId, String visitor) {
+    public RoomState joinRoom(UUID roomId, String visitor) {
         RoomState rm = redisService.getRoomState(roomId);
         if (rm == null) {
             throw new RoomNotFoundException(rm);
@@ -195,13 +197,13 @@ public class ChessService implements RoomManager, ChessGameService {
     }
 
     @Override
-    public void deleteRoom(String roomId) {
+    public void deleteRoom(UUID roomId) {
         redisService.deleteRoom(roomId);
         log.info("Room deleted: {}", roomId);
     }
 
     @Override
-    public RoomState getRoomState(String roomId) {
+    public RoomState getRoomState(UUID roomId) {
         log.debug("Getting a roomState of : {}", roomId);
         RoomState state = redisService.getRoomState(roomId);
         if (state == null) {
@@ -241,17 +243,17 @@ public class ChessService implements RoomManager, ChessGameService {
     // gets the id of every existing room
     public List<String> getAllRoomIds() {
         List<String> idList = redisService.getAllExistingRooms().stream()
-                .map(room -> room.getId())
+                .map(room -> room.getId().toString())
                 .collect(Collectors.toList());
         return idList;
     }
 
-    public HashMap<String, Board> getBoards() {
+    public HashMap<UUID, Board> getBoards() {
         return roomBoards;
     }
 
     @Override
-    public boolean acceptDraw(String roomId, String username) {
+    public boolean acceptDraw(UUID roomId, String username) {
         RoomState state = getRoomState(roomId);
         if (state == null) {
             return false;
@@ -265,7 +267,7 @@ public class ChessService implements RoomManager, ChessGameService {
     }
 
     @Override
-    public boolean offerDraw(String roomId, String username) {
+    public boolean offerDraw(UUID roomId, String username) {
         RoomState state = getRoomState(roomId);
         if (state == null) {
             return false;
@@ -282,7 +284,7 @@ public class ChessService implements RoomManager, ChessGameService {
     // The username means the player who resigns. So the winner is the opposite
     // player
     @Override
-    public boolean resign(String roomId, String username) {
+    public boolean resign(UUID roomId, String username) {
         RoomState state = getRoomState(roomId);
         Board board = roomBoards.get(roomId);
         if (board == null || state == null) {

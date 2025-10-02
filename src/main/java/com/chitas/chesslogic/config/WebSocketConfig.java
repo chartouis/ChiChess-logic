@@ -3,6 +3,8 @@ package com.chitas.chesslogic.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
+import com.chitas.chesslogic.controller.ChessWebSocketHandler;
+
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {

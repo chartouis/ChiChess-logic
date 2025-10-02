@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -25,12 +26,12 @@ public class MessageRouter {
         this.chessService = chessService;
     }
 
-    public void handleMove(WebSocketSession session, JsonNode payload, Map<String, Set<WebSocketSession>> rooms)
+    public void handleMove(WebSocketSession session, JsonNode payload, Map<UUID, Set<WebSocketSession>> rooms)
             throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         MoveRequest move = objectMapper.treeToValue(payload, MoveRequest.class);
 
-        String gameId = UriIdExtractor.extractGameId(session);
+        UUID gameId = UriIdExtractor.extractGameId(session);
 
         String username = (String) session.getAttributes().get("username");
 
@@ -42,9 +43,9 @@ public class MessageRouter {
         sendMoveResponse(rooms, gameId, valid);
     }
 
-    public void handleResign(WebSocketSession session, Map<String, Set<WebSocketSession>> rooms) throws IOException {
+    public void handleResign(WebSocketSession session, Map<UUID, Set<WebSocketSession>> rooms) throws IOException {
 
-        String gameId = UriIdExtractor.extractGameId(session);
+        UUID gameId = UriIdExtractor.extractGameId(session);
         String username = (String) session.getAttributes().get("username");
 
         if (gameId.equals(null) || username.equals(null)) {
@@ -58,8 +59,8 @@ public class MessageRouter {
         }
     }
 
-    public void handleDraw(WebSocketSession session, Map<String, Set<WebSocketSession>> rooms) throws IOException {
-        String gameId = UriIdExtractor.extractGameId(session);
+    public void handleDraw(WebSocketSession session, Map<UUID, Set<WebSocketSession>> rooms) throws IOException {
+        UUID gameId = UriIdExtractor.extractGameId(session);
         String username = (String) session.getAttributes().get("username");
         RoomState state = chessService.getRoomState(gameId);
         if (gameId.equals(null) || username.equals(null) || state == null) {
@@ -76,7 +77,7 @@ public class MessageRouter {
 
     }
 
-    public void sendMoveResponse(Map<String, Set<WebSocketSession>> rooms, String gameId, boolean valid)
+    public void sendMoveResponse(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId, boolean valid)
             throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         RoomState state = chessService.getRoomState(gameId);
@@ -85,7 +86,7 @@ public class MessageRouter {
         sendMessages(rooms, gameId, json);
     }
 
-    public void sendMessages(Map<String, Set<WebSocketSession>> rooms, String gameId, String messsage)
+    public void sendMessages(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId, String messsage)
             throws IOException {
         Set<WebSocketSession> roomSessions = rooms.getOrDefault(gameId, Set.of());
         TextMessage responseMessage = new TextMessage(messsage);
@@ -97,7 +98,7 @@ public class MessageRouter {
         }
     }
 
-    private void closeSessions(Map<String, Set<WebSocketSession>> rooms, String gameId) throws IOException {
+    private void closeSessions(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId) throws IOException {
         Set<WebSocketSession> roomSessions = rooms.getOrDefault(gameId, Collections.emptySet());
         for (WebSocketSession s : roomSessions) {
             if (s.isOpen()) {

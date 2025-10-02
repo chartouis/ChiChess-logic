@@ -1,18 +1,19 @@
 package com.chitas.chesslogic.utils;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import org.springframework.web.socket.WebSocketSession;
 
 public class UriIdExtractor {
-    public static String extractGameId(WebSocketSession session) {
+    public static UUID extractGameId(WebSocketSession session) {
         // Example path: /ws/game/abc123
         String path = Objects.requireNonNull(session.getUri()).getPath();
-        return path.substring(path.lastIndexOf("/") + 1);
+        return UUID.fromString(path.substring(path.lastIndexOf("/") + 1));
     }
 
-    public static String extractGameId(String uri) {
+    public static UUID extractGameId(String uri) {
         String path = Objects.requireNonNull(uri);
-        return path.substring(path.lastIndexOf("/") + 1);
+        return UUID.fromString(path.substring(path.lastIndexOf("/") + 1));
     }
 }

@@ -1,6 +1,7 @@
 package com.chitas.chesslogic.config;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -33,7 +34,7 @@ public class CHandshakeInterceptor implements HandshakeInterceptor {
             log.trace("No username. Which means no auth or jwt");
             return false;
         }
-        String roomId = UriIdExtractor.extractGameId(request.getURI().getPath());
+        UUID roomId = UriIdExtractor.extractGameId(request.getURI().getPath());
         if (!redisService.hasRoomId(roomId)) {
             log.trace("Attempt to connect to Non existing roomId : {}", roomId);
             return false;

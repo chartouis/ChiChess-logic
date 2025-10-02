@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
@@ -27,8 +28,7 @@ public class RedisService {
 
     public void saveRoomState(RoomState roomState) {
         try (Jedis jedis = jedisPool.getResource()) {
-            String key = "room:" + roomState.getId();
-            jedis.hset(key, "isActive", String.valueOf(roomState.isActive()));
+            String key = "room:" + roomState.getId().toString();
             jedis.hset(key, "creator", roomState.getCreator() != null ? roomState.getCreator() : "");
             jedis.hset(key, "white", roomState.getWhite() != null ? roomState.getWhite() : "");
             jedis.hset(key, "black", roomState.getBlack() != null ? roomState.getBlack() : "");
@@ -46,13 +46,12 @@ public class RedisService {
         }
     }
 
-    public RoomState getRoomState(String roomId) {
+    public RoomState getRoomState(UUID roomId) {
         try (Jedis jedis = jedisPool.getResource()) {
             String key = "room:" + roomId;
             if (!jedis.exists(key)) {
                 return null;
             }
-            String isActive = jedis.hget(key, "isActive");
             String creator = jedis.hget(key, "creator");
             String white = jedis.hget(key, "white");
             String black = jedis.hget(key, "black");
@@ -70,7 +69,6 @@ public class RedisService {
 
             return new RoomState.Builder()
                     .id(roomId)
-                    .isActive(Boolean.parseBoolean(isActive))
                     .creator(creator)
                     .black(black)
                     .white(white)
@@ -97,7 +95,7 @@ public class RedisService {
             List<RoomState> roomList = new ArrayList<>();
 
             for (String roomId : keys) {
-                RoomState state = getRoomState(roomId.split(":")[1]);
+                RoomState state = getRoomState(UUID.fromString(roomId.split(":")[1]));
                 if (state != null)
                     roomList.add(state);
             }
@@ -107,6 +105,12 @@ public class RedisService {
     }
 
     public void deleteRoom(String roomId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.del("room:" + roomId);
+        }
+    }
+
+    public void deleteRoom(UUID roomId) {
         try (Jedis jedis = jedisPool.getResource()) {
             jedis.del("room:" + roomId);
         }
@@ -124,6 +128,12 @@ public class RedisService {
     public boolean hasRoomId(String roomId) {
         try (Jedis jedis = jedisPool.getResource()) {
             return jedis.exists("room:" + roomId);
+        }
+    }
+
+    public boolean hasRoomId(UUID roomId) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            return jedis.exists("room:" + roomId.toString());
         }
     }
 }

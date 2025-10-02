@@ -1,23 +1,33 @@
 package com.chitas.chesslogic.model;
 
+import java.util.UUID;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Data
+@Entity
+@Table(name = "room_state")
 public class RoomState {
-    private String id;
-    private boolean isActive;
+    @Id
+    private UUID id;
     private String creator;
     private String black;
     private String white;
     private String position; // FEN
     private String history; // SAN moves
     private String drawOfferedBy;
+    @Enumerated(EnumType.STRING)
     private GameStatus status;
     private String winner; // userId of winner, or null if no winner yet
     private String gameType; // String because it only needs to know what gameType, not exactly the data
                              // associated with the gameType
 
-    // Timer fields in miliseconds
+    // Timer fields in milliseconds
     private long remainingWhite;
     private long remainingBlack;
     private long lastMoveEpoch;
@@ -43,20 +53,20 @@ public class RoomState {
     public void updateTimer(long incrementWhite, long incrementBlack) {
         boolean whiteToMove = getPosition().split(" ")[1].equals("w");
         long currentTimeInMS = System.currentTimeMillis();
-        boolean firstMove = getPosition().split(" ")[5].equals("1");
 
-        if (firstMove) {
+        if (lastMoveEpoch == 0) {
             setLastMoveEpoch(currentTimeInMS);
-        } else if (whiteToMove) {
+        }
+        if (whiteToMove) {
             setRemainingWhite(getRemainingWhite() - (currentTimeInMS - getLastMoveEpoch()) + incrementWhite);
         } else {
             setRemainingBlack(getRemainingBlack() - (currentTimeInMS - getLastMoveEpoch()) + incrementBlack);
         }
+        setLastMoveEpoch(currentTimeInMS);
     }
 
     private RoomState(Builder builder) {
         this.id = builder.id;
-        this.isActive = builder.isActive;
         this.creator = builder.creator;
         this.black = builder.black;
         this.white = builder.white;
@@ -72,8 +82,7 @@ public class RoomState {
     }
 
     public static class Builder {
-        private String id;
-        private boolean isActive;
+        private UUID id;
         private String creator;
         private String black;
         private String white;
@@ -90,12 +99,12 @@ public class RoomState {
         private long lastMoveEpoch;
 
         public Builder id(String id) {
-            this.id = id;
+            this.id = UUID.fromString(id);
             return this;
         }
 
-        public Builder isActive(boolean isActive) {
-            this.isActive = isActive;
+        public Builder id(UUID id) {
+            this.id = id;
             return this;
         }
 

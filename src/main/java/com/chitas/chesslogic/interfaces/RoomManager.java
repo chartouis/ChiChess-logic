@@ -1,16 +1,18 @@
 package com.chitas.chesslogic.interfaces;
 
+import java.util.UUID;
+
 import com.chitas.chesslogic.model.RoomState;
 
 public interface RoomManager {
 
         RoomState createRoom(String creator, String white, String black, String gameType);
 
-        RoomState joinRoom(String roomId, String visitorId);
+        RoomState joinRoom(UUID roomId, String visitorId);
 
-        RoomState getRoomState(String roomId);
+        RoomState getRoomState(UUID roomId);
 
-        void deleteRoom(String roomId);
+        void deleteRoom(UUID roomId);
 
         void loadRooms();
 

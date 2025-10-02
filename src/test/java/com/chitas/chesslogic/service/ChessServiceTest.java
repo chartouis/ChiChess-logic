@@ -9,6 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -31,23 +34,25 @@ class ChessServiceTest {
         String creatorId = "user1";
         String white = "user1";
         RoomState createdRoom = chessService.createRoom(creatorId, white, "", "rapid");
-        assertNotNull(createdRoom.getId());
+        UUID roomId = createdRoom.getId();
+
+        assertNotNull(roomId);
         assertEquals(creatorId, createdRoom.getCreator());
         assertNotNull(createdRoom.getPosition());
-        assertEquals(redisService.getRoomState(createdRoom.getId()).getId(), createdRoom.getId());
+        assertEquals(redisService.getRoomState(roomId).getId(), roomId);
 
         String black = "user2";
-        RoomState updatedRoom = chessService.joinRoom(createdRoom.getId(), black);
+        RoomState updatedRoom = chessService.joinRoom(roomId, black);
         assertEquals(white, updatedRoom.getWhite());
-        assertEquals(white, redisService.getRoomState(createdRoom.getId()).getWhite());
+        assertEquals(white, redisService.getRoomState(roomId).getWhite());
         assertEquals(black, updatedRoom.getBlack());
-        assertEquals(black, redisService.getRoomState(createdRoom.getId()).getBlack());
+        assertEquals(black, redisService.getRoomState(roomId).getBlack());
 
-        chessService.deleteRoom(createdRoom.getId());
-        assertNull(redisService.getRoomState(createdRoom.getId()));
+        chessService.deleteRoom(roomId);
+        assertNull(redisService.getRoomState(roomId));
     }
 
-    private boolean executeMove(String roomId, String from, String to, String promotion, String player) {
+    private boolean executeMove(UUID roomId, String from, String to, String promotion, String player) {
         String username = "test";
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(player, null));
@@ -56,7 +61,7 @@ class ChessServiceTest {
         return result;
     }
 
-    private void simulateMoves(String roomId, String[] moves, String whitePlayer, String blackPlayer) {
+    private void simulateMoves(UUID roomId, String[] moves, String whitePlayer, String blackPlayer) {
         for (int i = 0; i < moves.length; i += 3) {
             String player = i % 2 == 0 ? whitePlayer : blackPlayer;
             assertTrue(executeMove(roomId, moves[i], moves[i + 1], moves[i + 2], player),
@@ -70,6 +75,8 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
+
         assertEquals(whitePlayer, room.getWhite());
         assertEquals(blackPlayer, room.getBlack());
 
@@ -83,11 +90,11 @@ class ChessServiceTest {
                 "H5", "F7", ""
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertEquals(GameStatus.CHECKMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E8", "E7", "", blackPlayer));
+        assertFalse(executeMove(roomId, "E8", "E7", "", blackPlayer));
     }
 
     @Test
@@ -96,6 +103,7 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
 
         String[] moves = {
                 "F2", "F3", "",
@@ -104,11 +112,11 @@ class ChessServiceTest {
                 "D8", "H4", ""
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertEquals(GameStatus.CHECKMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E1", "E2", "", whitePlayer));
+        assertFalse(executeMove(roomId, "E1", "E2", "", whitePlayer));
     }
 
     @Test
@@ -117,6 +125,7 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
 
         String[] moves = {
                 "G1", "F3", "",
@@ -129,9 +138,9 @@ class ChessServiceTest {
                 "F6", "G8", ""
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertEquals(GameStatus.DRAW, finalState.getStatus());
     }
 
@@ -141,6 +150,7 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
 
         String[] moves = {
                 "D2", "D4", "",
@@ -169,11 +179,11 @@ class ChessServiceTest {
                 "F5", "F4", ""
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertEquals(GameStatus.STALEMATE, finalState.getStatus());
-        assertFalse(executeMove(room.getId(), "E7", "D7", "", blackPlayer));
+        assertFalse(executeMove(roomId, "E7", "D7", "", blackPlayer));
     }
 
     @Test
@@ -182,6 +192,7 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
 
         String[] moves = {
                 "E2", "E4", "",
@@ -208,9 +219,9 @@ class ChessServiceTest {
                 "D2", "D1", "Q"
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertTrue(finalState.getPosition().contains("Q"));
     }
 
@@ -220,6 +231,7 @@ class ChessServiceTest {
         String blackPlayer = "blackUser";
         RoomState room = chessService.createRoom(whitePlayer, whitePlayer, "", "rapid");
         room = chessService.joinRoom(room.getId(), blackPlayer);
+        UUID roomId = room.getId();
 
         String[] moves = {
                 "E2", "E4", "",
@@ -246,10 +258,10 @@ class ChessServiceTest {
                 "D2", "D1", "N"
         };
 
-        simulateMoves(room.getId(), moves, whitePlayer, blackPlayer);
+        simulateMoves(roomId, moves, whitePlayer, blackPlayer);
 
-        RoomState finalState = chessService.getRoomState(room.getId());
+        RoomState finalState = chessService.getRoomState(roomId);
         assertTrue(finalState.getPosition().contains("N"));
-        //this test doesnt actually do its purpose, cuz there are at least 2 white horses from the start. so it will always pass unless a problem while doing moves
+        // Hinweis: dieser Test beweist nicht wirklich die Springer-Beförderung
     }
 }

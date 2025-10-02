@@ -3,6 +3,7 @@ package com.chitas.chesslogic.controller;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ import lombok.extern.log4j.Log4j2;
 public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     private final MessageRouter router;
-    private final Map<String, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
 
     public ChessWebSocketHandler(MessageRouter router) {
         this.router = router;
@@ -33,7 +34,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        String gameId = UriIdExtractor.extractGameId(session);
+        UUID gameId = UriIdExtractor.extractGameId(session);
         rooms.computeIfAbsent(gameId, _ -> ConcurrentHashMap.newKeySet()).add(session);
         router.sendMoveResponse(rooms, gameId, true);
         log.info("User : {} | Connected : {} | to room : {}",
@@ -63,7 +64,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
                             break;
                         case RESIGN:
                             router.handleResign(session, rooms);
-                        case DRAW: 
+                        case DRAW:
                             router.handleDraw(session, rooms);
                         case UPDATE: // Gets the current board position, timer and other data which might change
 
@@ -82,7 +83,7 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        String gameId = UriIdExtractor.extractGameId(session);
+        UUID gameId = UriIdExtractor.extractGameId(session);
         Set<WebSocketSession> roomSessions = rooms.get(gameId);
         if (roomSessions != null) {
             roomSessions.remove(session);

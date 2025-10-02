@@ -1,5 +1,7 @@
 package com.chitas.chesslogic.grpc;
 
+import java.util.UUID;
+
 import com.chitas.chesslogic.model.RoomState;
 import com.chitas.chesslogic.service.ChessService;
 import com.chitas.grpc.CreateRoomRequest;
@@ -28,7 +30,7 @@ public class RoomGrpcController extends RoomServiceImplBase {
                 request.getCreator(), request.getWhite(), request.getBlack(), request.getGameType());
 
         RoomResponse response = RoomResponse.newBuilder()
-                .setRoomId(room.getId())
+                .setRoomId(room.getId().toString())
                 .setStatus("created")
                 .build();
 
@@ -39,10 +41,10 @@ public class RoomGrpcController extends RoomServiceImplBase {
     @Override
     public void joinRoom(JoinRoomRequest request, StreamObserver<RoomResponse> responseObserver) {
         log.info("gRPC: joinRoom");
-        RoomState room = service.joinRoom(request.getRoomId(), request.getVisitor());
+        RoomState room = service.joinRoom(UUID.fromString(request.getRoomId()), request.getVisitor());
 
         RoomResponse response = RoomResponse.newBuilder()
-                .setRoomId(room.getId())
+                .setRoomId(room.getId().toString())
                 .build();
 
         responseObserver.onNext(response);
