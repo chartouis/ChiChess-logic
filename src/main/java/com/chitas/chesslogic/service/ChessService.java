@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.chitas.chesslogic.interfaces.ChessGameService;
@@ -87,7 +88,7 @@ public class ChessService implements RoomManager, ChessGameService {
                 log.info("Move : {} on room : {}", move, roomId);
                 state.setPosition(board.getFen());
                 state.setHistory(moveList.toSan());
-                GameStatus status = checkBoardStatus(roomId);
+                GameStatus status = checkBoardStatus(board);
                 state.setStatus(status);
 
                 if (!playerToMove.equals(state.getDrawOfferedBy())) {
@@ -96,11 +97,12 @@ public class ChessService implements RoomManager, ChessGameService {
 
                 if (status == GameStatus.CHECKMATE) {
                     if (board.getSideToMove() == Side.WHITE) {
-                        state.setWinner(state.getBlack());
+                        closeRoom(state, status, state.getBlack());
                     } else {
-                        state.setWinner(state.getWhite());
+                        closeRoom(state, status, state.getWhite());
                     }
                     log.info("Game ended with: {}", status.name());
+                    return true;
                 }
 
                 redisService.saveRoomState(state);
@@ -111,11 +113,7 @@ public class ChessService implements RoomManager, ChessGameService {
         return false;
     }
 
-    private GameStatus checkBoardStatus(UUID roomId) {
-        Board board = roomBoards.get(roomId);
-        if (board == null) {
-            throw new RoomNotFoundException(getRoomState(roomId));
-        }
+    private GameStatus checkBoardStatus(Board board) {
         if (board.isMated()) {
             return GameStatus.CHECKMATE;
         }
@@ -305,9 +303,37 @@ public class ChessService implements RoomManager, ChessGameService {
     private void closeRoom(RoomState state, GameStatus status, String winner) {
         state.setWinner(winner);
         state.setStatus(status);
-        state.setActive(false);
+        // state.setActive(false);
         roomBoards.remove(state.getId());
         redisService.saveRoomState(state);
     }
 
+    // Deletes from redis then saves on postgres
+    @Transactional
+    public void persistFromRedis(RoomState state) {
+        UUID id = state.getId();
+        if (postgresService.has(id)) {
+            redisService.deleteRoom(id);
+            return;
+        }
+        if (!redisService.hasRoomId(id)) {
+            return;
+        }
+        try {
+            postgresService.save(state);
+            redisService.deleteRoom(id);
+        } catch (DataIntegrityViolationException e) {
+            redisService.deleteRoom(id);
+        }
+    }
+
+    // if persisted true, otherwise false
+    public boolean checkAndPersist(RoomState state) {
+        GameStatus status = state.getStatus();
+        if (status != GameStatus.WAITING && status != GameStatus.ONGOING) {
+            persistFromRedis(state);
+            return true;
+        }
+        return false;
+    }
 }

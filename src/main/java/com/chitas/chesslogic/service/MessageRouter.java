@@ -32,7 +32,6 @@ public class MessageRouter {
         MoveRequest move = objectMapper.treeToValue(payload, MoveRequest.class);
 
         UUID gameId = UriIdExtractor.extractGameId(session);
-
         String username = (String) session.getAttributes().get("username");
 
         if (move == null || gameId.equals(null) || username.equals(null)) {
@@ -40,23 +39,20 @@ public class MessageRouter {
         }
 
         boolean valid = chessService.doMove(gameId, move.getFrom(), move.getTo(), move.getPromotion(), username);
-        sendMoveResponse(rooms, gameId, valid);
+        checkSendPersistClose(rooms, gameId, valid);
     }
 
     public void handleResign(WebSocketSession session, Map<UUID, Set<WebSocketSession>> rooms) throws IOException {
 
         UUID gameId = UriIdExtractor.extractGameId(session);
         String username = (String) session.getAttributes().get("username");
-
         if (gameId.equals(null) || username.equals(null)) {
             return;
         }
 
         boolean valid = chessService.resign(gameId, username);
-        sendMoveResponse(rooms, gameId, valid);
-        if (valid) {
-            closeSessions(rooms, gameId);
-        }
+        checkSendPersistClose(rooms, gameId, valid);
+
     }
 
     public void handleDraw(WebSocketSession session, Map<UUID, Set<WebSocketSession>> rooms) throws IOException {
@@ -72,9 +68,7 @@ public class MessageRouter {
         if (!valid) {
             valid = chessService.offerDraw(gameId, username);
         }
-        sendMoveResponse(rooms, gameId, valid);
-        return;
-
+        checkSendPersistClose(rooms, gameId, valid);
     }
 
     public void sendMoveResponse(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId, boolean valid)
@@ -108,4 +102,12 @@ public class MessageRouter {
         rooms.remove(gameId); // drop references
     }
 
+    private void checkSendPersistClose(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId, boolean valid)
+            throws IOException {
+        RoomState state = chessService.getRoomState(gameId);
+        sendMoveResponse(rooms, gameId, valid);
+        if (chessService.checkAndPersist(state)) {
+            closeSessions(rooms, gameId);
+        }
+    }
 }
