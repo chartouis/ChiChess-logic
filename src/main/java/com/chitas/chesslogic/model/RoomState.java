@@ -40,6 +40,9 @@ public class RoomState {
     // Creation timestamp in UTC
     private Instant createdAt = Instant.now();
 
+    // NEW FIELD — time when the game actually started
+    private Instant gameStartedAt;
+
     public boolean hasPlayer(String username) {
         return (black.equals(username) || white.equals(username));
     }
@@ -73,6 +76,56 @@ public class RoomState {
         setLastMoveEpoch(currentTimeInMS);
     }
 
+    public boolean isAfkTimeout() {
+        long now = System.currentTimeMillis();
+        if (isFirstMoveForWhite()) {
+            return now - gameStartedAt.toEpochMilli() >= 60_000;
+        }
+        if (isFirstMoveForBlack()) {
+            if (timestamps == null || timestamps.isEmpty())
+                return false;
+            String[] ts = timestamps.trim().split(" ");
+            long lastWhiteMove = Long.parseLong(ts[ts.length - 1]);
+            return now - lastWhiteMove >= 60_000;
+        }
+        return false;
+    }
+
+    public boolean whiteToMove() {
+        return position.split(" ")[1].equals("w");
+    }
+
+    public boolean blackToMove() {
+        return position.split(" ")[1].equals("b");
+    }
+
+    public boolean isFirstMoveForWhite() {
+        return whiteToMove() && getFullmoveNumber() == 1;
+    }
+
+    public boolean isFirstMoveForBlack() {
+        return blackToMove() && getFullmoveNumber() == 1;
+    }
+
+    public boolean isFirstMoveForBoth() {
+        return getFullmoveNumber() == 1;
+    }
+
+    private int getFullmoveNumber() {
+        return Integer.parseInt(position.split(" ")[5]);
+    }
+
+    public int getHalfmoveClock() {
+        return Integer.parseInt(position.split(" ")[4]);
+    }
+
+    public void addTimestamp() {
+        long now = System.currentTimeMillis();
+        long sinceStart = now - getGameStartedAt().toEpochMilli();
+        String current = getTimestamps();
+        setTimestamps(current.isEmpty() ? String.valueOf(sinceStart) : current + " " + sinceStart);
+    }
+
     private RoomState(Builder builder) {
         this.id = builder.id;
         this.creator = builder.creator;
@@ -89,6 +142,7 @@ public class RoomState {
         this.remainingBlack = builder.remainingBlack;
         this.lastMoveEpoch = builder.lastMoveEpoch;
         this.createdAt = builder.createdAt != null ? builder.createdAt : Instant.now();
+        this.gameStartedAt = builder.gameStartedAt;
     }
 
     public static class Builder {
@@ -107,6 +161,7 @@ public class RoomState {
         private long remainingBlack;
         private long lastMoveEpoch;
         private Instant createdAt;
+        private Instant gameStartedAt;
 
         public Builder id(String id) {
             this.id = UUID.fromString(id);
@@ -185,6 +240,11 @@ public class RoomState {
 
         public Builder createdAt(Instant createdAt) {
             this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder gameStartedAt(Instant gameStartedAt) {
+            this.gameStartedAt = gameStartedAt;
             return this;
         }
 

@@ -1,5 +1,6 @@
 package com.chitas.chesslogic.service;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -76,6 +77,10 @@ public class ChessService implements RoomManager, ChessGameService {
                 && state.getStatus() == GameStatus.ONGOING) {
 
             GameType type = settings.get(state.getGameType());
+            if (state.isAfkTimeout()) {
+                closeRoom(state, GameStatus.ABANDONED, "");
+                return true;
+            }
             state.updateTimer(type.getIncrementWhite(), type.getIncrementBlack());
             if (state.checkTimerRunout()) {
                 redisService.saveRoomState(state);
@@ -86,6 +91,7 @@ public class ChessService implements RoomManager, ChessGameService {
                 moveList.add(move);
 
                 log.info("Move : {} on room : {}", move, roomId);
+                state.addTimestamp();
                 state.setPosition(board.getFen());
                 state.setHistory(moveList.toSan());
                 GameStatus status = checkBoardStatus(board);
@@ -188,6 +194,9 @@ public class ChessService implements RoomManager, ChessGameService {
             log.info("player: {} joined room: {} as black", visitor, roomId);
         } else {
             throw new RoomFullException(rm);
+        }
+        if (rm.getGameStartedAt() == null) {
+            rm.setGameStartedAt(Instant.now());
         }
         redisService.saveRoomState(rm);
 
