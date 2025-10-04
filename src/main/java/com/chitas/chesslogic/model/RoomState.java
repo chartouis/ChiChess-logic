@@ -1,5 +1,6 @@
 package com.chitas.chesslogic.model;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
@@ -27,14 +28,16 @@ public class RoomState {
     private String drawOfferedBy;
     @Enumerated(EnumType.STRING)
     private GameStatus status;
-    private String winner; // userId of winner, or null if no winner yet
-    private String gameType; // String because it only needs to know what gameType, not exactly the data
-                             // associated with the gameType
+    private String winner;
+    private String gameType;
 
     // Timer fields in milliseconds
     private long remainingWhite;
     private long remainingBlack;
     private long lastMoveEpoch;
+
+    // Creation timestamp in UTC
+    private Instant createdAt = Instant.now();
 
     public boolean hasPlayer(String username) {
         return (black.equals(username) || white.equals(username));
@@ -83,6 +86,7 @@ public class RoomState {
         this.remainingWhite = builder.remainingWhite;
         this.remainingBlack = builder.remainingBlack;
         this.lastMoveEpoch = builder.lastMoveEpoch;
+        this.createdAt = builder.createdAt != null ? builder.createdAt : Instant.now();
     }
 
     public static class Builder {
@@ -96,11 +100,10 @@ public class RoomState {
         private GameStatus status;
         private String winner;
         private String gameType;
-
-        // Timer fields
         private long remainingWhite;
         private long remainingBlack;
         private long lastMoveEpoch;
+        private Instant createdAt;
 
         public Builder id(String id) {
             this.id = UUID.fromString(id);
@@ -169,6 +172,11 @@ public class RoomState {
 
         public Builder lastMoveEpoch(long lastMoveEpoch) {
             this.lastMoveEpoch = lastMoveEpoch;
+            return this;
+        }
+
+        public Builder createdAt(Instant createdAt) {
+            this.createdAt = createdAt;
             return this;
         }
 
