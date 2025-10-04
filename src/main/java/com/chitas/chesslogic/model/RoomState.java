@@ -25,6 +25,7 @@ public class RoomState {
     private String white;
     private String position; // FEN
     private String history; // SAN moves
+    private String timestamps; // string of move timestamps in ms
     private String drawOfferedBy;
     @Enumerated(EnumType.STRING)
     private GameStatus status;
@@ -79,6 +80,7 @@ public class RoomState {
         this.white = builder.white;
         this.position = builder.position;
         this.history = builder.history;
+        this.timestamps = builder.timestamps;
         this.status = builder.status;
         this.winner = builder.winner;
         this.drawOfferedBy = builder.drawOfferedBy;
@@ -96,6 +98,7 @@ public class RoomState {
         private String white;
         private String position;
         private String history;
+        private String timestamps;
         private String drawOfferedBy;
         private GameStatus status;
         private String winner;
@@ -137,6 +140,11 @@ public class RoomState {
 
         public Builder history(String history) {
             this.history = history;
+            return this;
+        }
+
+        public Builder timestamps(String timestamps) {
+            this.timestamps = timestamps;
             return this;
         }
 

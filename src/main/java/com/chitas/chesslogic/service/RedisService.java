@@ -45,6 +45,9 @@ public class RedisService {
             jedis.hset(key, "remainingBlack", String.valueOf(roomState.getRemainingBlack()));
             jedis.hset(key, "lastMoveEpoch", String.valueOf(roomState.getLastMoveEpoch()));
 
+            // NEW FIELD – timestamps (as string, JSON or space-separated)
+            jedis.hset(key, "timestamps", nvl(roomState.getTimestamps()));
+
             // Creation time (UTC)
             jedis.hset(key, "createdAt",
                     roomState.getCreatedAt() != null ? roomState.getCreatedAt().toString() : Instant.now().toString());
@@ -70,6 +73,7 @@ public class RedisService {
             String remainingWhite = jedis.hget(key, "remainingWhite");
             String remainingBlack = jedis.hget(key, "remainingBlack");
             String lastMoveEpoch = jedis.hget(key, "lastMoveEpoch");
+            String timestamps = jedis.hget(key, "timestamps");
             String createdAt = jedis.hget(key, "createdAt");
 
             return new RoomState.Builder()
@@ -86,6 +90,7 @@ public class RedisService {
                     .remainingWhite(parseLong(remainingWhite))
                     .remainingBlack(parseLong(remainingBlack))
                     .lastMoveEpoch(parseLong(lastMoveEpoch))
+                    .timestamps(timestamps)
                     .createdAt(createdAt != null && !createdAt.isEmpty() ? Instant.parse(createdAt) : Instant.now())
                     .build();
         }
