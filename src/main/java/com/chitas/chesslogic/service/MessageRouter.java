@@ -21,14 +21,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class MessageRouter {
 
     private final ChessService chessService;
+    private final ObjectMapper objectMapper;
 
-    public MessageRouter(ChessService chessService) {
+    public MessageRouter(ChessService chessService, ObjectMapper objectMapper) {
         this.chessService = chessService;
+        this.objectMapper = objectMapper;
     }
 
     public void handleMove(WebSocketSession session, JsonNode payload, Map<UUID, Set<WebSocketSession>> rooms)
             throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
         MoveRequest move = objectMapper.treeToValue(payload, MoveRequest.class);
 
         UUID gameId = UriIdExtractor.extractGameId(session);
@@ -73,7 +74,6 @@ public class MessageRouter {
 
     public void sendMoveResponse(Map<UUID, Set<WebSocketSession>> rooms, UUID gameId, boolean valid)
             throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
         RoomState state = chessService.getRoomState(gameId);
         MoveResponse response = new MoveResponse(valid, state);
         String json = objectMapper.writeValueAsString(response);

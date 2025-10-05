@@ -27,9 +27,11 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
 
     private final MessageRouter router;
     private final Map<UUID, Set<WebSocketSession>> rooms = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
 
-    public ChessWebSocketHandler(MessageRouter router) {
+    public ChessWebSocketHandler(MessageRouter router, ObjectMapper objectMapper) {
         this.router = router;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -49,7 +51,6 @@ public class ChessWebSocketHandler extends TextWebSocketHandler {
                 session.getAttributes().get("username"),
                 session.getId(),
                 UriIdExtractor.extractGameId(session)); // info to trace
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode node = objectMapper.readTree(message.getPayload());
             String rawType = node.has("type") ? node.get("type").asText() : null;
