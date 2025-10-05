@@ -62,13 +62,12 @@ public class RoomState {
     }
 
     public void updateTimer(long incrementWhite, long incrementBlack) {
-        boolean whiteToMove = getPosition().split(" ")[1].equals("w");
         long currentTimeInMS = System.currentTimeMillis();
 
         if (lastMoveEpoch == 0) {
             setLastMoveEpoch(currentTimeInMS);
         }
-        if (whiteToMove) {
+        if (whiteToMove()) {
             setRemainingWhite(getRemainingWhite() - (currentTimeInMS - getLastMoveEpoch()) + incrementWhite);
         } else {
             setRemainingBlack(getRemainingBlack() - (currentTimeInMS - getLastMoveEpoch()) + incrementBlack);
@@ -79,24 +78,21 @@ public class RoomState {
     public boolean isAfkTimeout() {
         long now = System.currentTimeMillis();
         if (isFirstMoveForWhite()) {
-            return now - gameStartedAt.toEpochMilli() >= 60_000;
+            return now - gameStartedAt.toEpochMilli() >= 60000;
         }
         if (isFirstMoveForBlack()) {
-            if (timestamps == null || timestamps.isEmpty())
-                return false;
-            String[] ts = timestamps.trim().split(" ");
-            long lastWhiteMove = Long.parseLong(ts[ts.length - 1]);
-            return now - lastWhiteMove >= 60_000;
+            long lastWhiteMove = Long.parseLong(timestamps);
+            return now - lastWhiteMove >= 60000;
         }
         return false;
     }
 
     public boolean whiteToMove() {
-        return position.split(" ")[1].equals("w");
+        return getPosition().split(" ")[1].equals("w");
     }
 
     public boolean blackToMove() {
-        return position.split(" ")[1].equals("b");
+        return getPosition().split(" ")[1].equals("b");
     }
 
     public boolean isFirstMoveForWhite() {
@@ -112,11 +108,11 @@ public class RoomState {
     }
 
     private int getFullmoveNumber() {
-        return Integer.parseInt(position.split(" ")[5]);
+        return Integer.parseInt(getPosition().split(" ")[5]);
     }
 
     public int getHalfmoveClock() {
-        return Integer.parseInt(position.split(" ")[4]);
+        return Integer.parseInt(getPosition().split(" ")[4]);
     }
 
     public void addTimestamp() {
