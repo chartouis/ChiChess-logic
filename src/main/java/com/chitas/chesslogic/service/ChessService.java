@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.chitas.chesslogic.interfaces.ChessGameService;
@@ -68,6 +69,10 @@ public class ChessService implements RoomManager, ChessGameService {
         MoveList moveList = roomMoves.get(roomId);
 
         if (board == null || moveList == null || state == null) {
+            return false;
+        }
+
+        if (state.getBlack().equals(null) || state.getWhite().equals(null)) {
             return false;
         }
 
@@ -322,6 +327,7 @@ public class ChessService implements RoomManager, ChessGameService {
     public void persistFromRedis(RoomState state) {
         UUID id = state.getId();
         if (postgresService.has(id)) {
+            postgresService.save(state);
             redisService.deleteRoom(id);
             return;
         }
@@ -345,4 +351,41 @@ public class ChessService implements RoomManager, ChessGameService {
         }
         return false;
     }
+
+    @Scheduled(fixedRate = 10000)
+    public void flushRedisToPostgres() {
+        getAllExistingRooms()
+                .forEach(room -> postgresService.save(room));
+    }
+
+    @Scheduled(fixedRate = 10000)
+    public void updateEveryRoomState() {
+        getAllExistingRooms().forEach(room -> updateRoomState(room));
+    }
+
+    public void updateRoomState(RoomState state) {
+        if (state.getGameStartedAt() == null) {
+            return;
+        }
+        state.updateTimer(0, 0);
+        state.checkTimerRunout();
+        if (state.isAfkTimeout()) {
+            closeRoom(state, GameStatus.ABANDONED, "");
+            persistFromRedis(state);
+            return;
+        }
+
+        if (!isActive(state)) {
+            redisService.saveRoomState(state);
+            persistFromRedis(state);
+            return;
+        }
+        redisService.saveRoomState(state);
+
+    }
+
+    public boolean isActive(RoomState state) {
+        return state.getStatus() == GameStatus.ONGOING || state.getStatus() == GameStatus.WAITING;
+    }
+
 }
