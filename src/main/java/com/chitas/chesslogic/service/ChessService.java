@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -386,6 +387,10 @@ public class ChessService implements RoomManager, ChessGameService {
 
     public boolean isActive(RoomState state) {
         return state.getStatus() == GameStatus.ONGOING || state.getStatus() == GameStatus.WAITING;
+    }
+
+    public RoomState getGame(UUID gameUuid) {
+        return postgresService.get(gameUuid);
     }
 
 }

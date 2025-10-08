@@ -19,6 +19,10 @@ public class PostgresService {
         return repo.save(state);
     }
 
+    public RoomState get(UUID gameId) {
+        return repo.getReferenceById(gameId);
+    }
+
     public boolean has(UUID id) {
         return repo.existsById(id);
     }

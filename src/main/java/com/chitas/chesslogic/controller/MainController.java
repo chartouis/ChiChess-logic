@@ -3,24 +3,32 @@ package com.chitas.chesslogic.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.chitas.chesslogic.model.RoomState;
+import com.chitas.chesslogic.service.ChessService;
+
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
 @RestController
 @RequestMapping
 public class MainController {
-    // private final ChessService chess;
-    // private final SimpMessagingTemplate messagingTemplate;
 
-    // public MainController(ChessService chess, SimpMessagingTemplate messagingTemplate) {
-    //     this.chess = chess;
-    //     this.messagingTemplate = messagingTemplate;
+    private final ChessService chess;
 
-    // }
+    public MainController(ChessService chess) {
+        this.chess = chess;
+    }
 
-    // @MessageMapping("/game/{roomId}/move")
-    // public void doMove(@RequestBody @Valid MoveRequest move, @PathVariable String roomId) {
-    //     MoveResponse resp = new MoveResponse(chess.doMove(roomId, move.getFrom(), move.getTo(), move.getPromotion()),
-    //             chess.getRoomState(roomId));
-    //     messagingTemplate.convertAndSend("/subscribed/game/" + roomId, resp);
-    // }
-
+    @GetMapping("/api/{gameId}")
+    public ResponseEntity<RoomState> getGame(@PathVariable UUID gameId) {
+        RoomState state = chess.getGame(gameId);
+        if (!state.equals(null)) {
+            return ResponseEntity.ok(state);
+        }
+        return ResponseEntity.notFound().build();
+    }
 
 }
