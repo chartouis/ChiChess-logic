@@ -20,7 +20,7 @@ public class PostgresService {
     }
 
     public RoomState get(UUID gameId) {
-        return repo.getReferenceById(gameId);
+        return repo.findById(gameId).orElseThrow();
     }
 
     public boolean has(UUID id) {

@@ -23,8 +23,8 @@ public class MainController {
     }
 
     @GetMapping("/api/{gameId}")
-    public ResponseEntity<RoomState> getGame(@PathVariable UUID gameId) {
-        RoomState state = chess.getGame(gameId);
+    public ResponseEntity<RoomState> getGame(@PathVariable("gameId") String gameId) {
+        RoomState state = chess.getGame(UUID.fromString(gameId));
         if (!state.equals(null)) {
             return ResponseEntity.ok(state);
         }
