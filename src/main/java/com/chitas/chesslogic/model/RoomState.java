@@ -82,7 +82,7 @@ public class RoomState {
         }
         if (isFirstMoveForBlack()) {
             long lastWhiteMove = Long.parseLong(timestamps);
-            return now - lastWhiteMove >= 60000;
+            return now - (lastWhiteMove + gameStartedAt.toEpochMilli()) >= 60000;
         }
         return false;
     }
