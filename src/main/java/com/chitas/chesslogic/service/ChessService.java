@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -65,10 +64,15 @@ public class ChessService implements RoomManager, ChessGameService {
         } else { // of the piece with that promotion exists
             move = new Move(Square.fromValue(from), Square.fromValue(to));
         }
+
         RoomState state = getRoomState(roomId);
         Board board = roomBoards.get(roomId);
         MoveList moveList = roomMoves.get(roomId);
 
+        Piece fromPiece = board.getPiece(move.getFrom());
+        if (Piece.NONE.equals(fromPiece)) {
+            return false;
+        }
         if (board == null || moveList == null || state == null) {
             return false;
         }
